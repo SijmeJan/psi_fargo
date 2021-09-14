@@ -17,8 +17,8 @@ Epsilon                 3.0    Dust-to-gas mass ratio
 
 ### Mesh parameters
 
-Ny         64      Number of 'radial' zones
-Nz         64      Number of vertical zones
+Ny         32      Number of 'radial' zones
+Nz         32      Number of vertical zones
 Ymin              -0.10471975511965977
 Ymax              0.10471975511965977
 Zmin              -0.10471975511965977
@@ -30,5 +30,5 @@ PeriodicZ          YES
 
 DT         0.1     Time step length
 Ninterm    10      Time steps between outputs
-Ntot       2000    Total number of time steps
+Ntot       1000    Total number of time steps
 OutputDir      @outputs/psi_linearA

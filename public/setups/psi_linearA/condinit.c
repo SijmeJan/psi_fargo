@@ -18,10 +18,10 @@ void CondInit() {
   for (k=0; k<Nz+2*NGHZ; k++) {
     for (j=0; j<Ny+2*NGHY; j++) {
       for (i=0; i<Nx+2*NGHX; i++) {
-        rho[l] = 1.0 + 0.0*exp(-((Ymed(j)-0.05)*(Ymed(j)-0.05) + (Zmed(k)-0.05)*(Zmed(k)-0.05))/(0.025*0.025)) + 0.0001*(7.4637e-06*cos(30.0*Ymed(j) + 30.0*Zmed(k)) - 7.0677e-06*sin(30.0*Ymed(j) + 30.0*Zmed(k)));
-        vx[l]  = -0.2504684572142411 + 0.0001*(0.0445570113*cos(30.0*Ymed(j) + 30.0*Zmed(k)) - 0.0197224299*sin(30.0*Ymed(j) + 30.0*Zmed(k))) - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);
-        vy[l]  = 0.03747657713928795 + 0.0001*(-0.0563787907*cos(30.0*Ymin(j) + 30.0*Zmed(k)) - 0.0120535455*sin(30.0*Ymin(j) + 30.0*Zmed(k)));
-        vz[l]  = 0.0 + 0.0001*(0.0563784989*cos(30.0*Ymed(j) + 30.0*Zmin(k)) - -0.0120536242*sin(30.0*Ymed(j) + 30.0*Zmin(k)));
+        rho[l] = 1.0 + 0.0001*(7.4608639e-06*cos(30*Ymed(j) + 30*Zmed(k)) - (7.06921219e-06)*sin(30*Ymed(j) + 30*Zmed(k)));
+        vx[l]  = -0.2504684572142411 + 0.0001*(0.0445522906*cos(30*Ymed(j) + 30*Zmed(k)) - (0.0197146371)*sin(30*Ymed(j) + 30*Zmed(k))) - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);
+        vy[l]  = 0.03747657713928795 + 0.0001*(-0.0563886397*cos(30*Ymin(j) + 30*Zmed(k)) - (0.0120336579)*sin(30*Ymin(j) + 30*Zmed(k)));
+        vz[l]  = 0.0 + 0.0001*(0.0563883479*cos(30*Ymed(j) + 30*Zmin(k)) - (-0.0120337366)*sin(30*Ymed(j) + 30*Zmin(k)));
         cs[l]  = 20.0;      // H*Omega*Omega/eta
       }
     }
@@ -40,10 +40,10 @@ void CondInit() {
   for (k=0; k<Nz+2*NGHZ; k++) {
     for (j=0; j<Ny+2*NGHY; j++) {
       for (i=0; i<Nx+2*NGHX; i++) {
-        rho[l] = 3.0 + 0.0001*(1.0*cos(30.0*Ymed(j) + 30.0*Zmed(k)) - 0.0*sin(30.0*Ymed(j) + 30.0*Zmed(k)));
-        vx[l]  = -0.249843847595253 + 0.0001*(0.0435211557*cos(30.0*Ymed(j) + 30.0*Zmed(k)) - 0.0213517453*sin(30.0*Ymed(j) + 30.0*Zmed(k))) - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);
-        vy[l]  = -0.012492192379762646 + 0.0001*(-0.0466198076*cos(30.0*Ymin(j) + 30.0*Zmed(k)) - 0.0124333223*sin(30.0*Ymin(j) + 30.0*Zmed(k)));
-        vz[l]  = 0.0 + 0.0001*(0.0546507401*cos(30.0*Ymed(j) + 30.0*Zmin(k)) - -0.0077776652*sin(30.0*Ymed(j) + 30.0*Zmin(k)));
+        rho[l] = 3.0 + 0.0001*(1.0*cos(30*Ymed(j) + 30*Zmed(k)) - (0.0)*sin(30*Ymed(j) + 30*Zmed(k)));
+        vx[l]  = -0.249843847595253 + 0.0001*(0.043518072*cos(30*Ymed(j) + 30*Zmed(k)) - (0.0213451298)*sin(30*Ymed(j) + 30*Zmed(k))) - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);
+        vy[l]  = -0.012492192379762646 + 0.0001*(-0.0466288875*cos(30*Ymin(j) + 30*Zmed(k)) - (0.012412632)*sin(30*Ymin(j) + 30*Zmed(k)));
+        vz[l]  = 0.0 + 0.0001*(0.054659421*cos(30*Ymed(j) + 30*Zmin(k)) - (-0.00775824909)*sin(30*Ymed(j) + 30*Zmin(k)));
         cs[l]  = 0.0;
       }
     }
