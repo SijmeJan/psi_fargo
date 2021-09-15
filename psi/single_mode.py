@@ -108,7 +108,7 @@ class RandomFixedK(Perturbation):
             self.eig[i] = real_part + 1j*imag_part
 
         # Make sure gas density perturbation is tiny (almost incompressible)
-        self.eig[0] = 1.0e-6*self.eig[0]
+        self.eig[0] = 1.0e-4*self.eig[0]
 
         # Normalized to first dust density perturbation
         self.eig[4] = 1.0
