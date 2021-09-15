@@ -32,7 +32,7 @@ Kz = 60
 mode = single_mode.RandomFixedK(n_dust, 1.0e-4, Kx, Kz)
 
 fargo_dir = '/Users/sjp/Codes/psi_fargo/public/setups'
-setup_name = 'psi_mu3'         # Name of the PSI setup
+setup_name = 'psi_mu2'         # Name of the PSI setup
 Ly = 2*np.pi/mode.Kx            # 'radial' box size
 Lz = 2*np.pi/mode.Kz            # vertical box size
 Ny = 32                         # 'radial' number of grid points
