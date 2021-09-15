@@ -51,6 +51,31 @@ class Fluid:
         self.vely = self.vely.reshape(self.nz, self.ny, self.nx)
         self.velz = self.velz.reshape(self.nz, self.ny, self.nx)
 
+class PolyFluid:
+    def __init__(self, direc):
+
+        data = np.genfromtxt(direc + '/variables.par',dtype='str')
+
+        tau = []
+        for d in data:
+            if d[0].find('INVSTOKES') != -1:
+                tau.append(float(d[1]))
+        tau = np.sort(1.0/np.asarray(tau))
+
+        self.stopping_times = tau
+        self.n_dust = len(tau)
+
+        # Gas fluid
+        self.Fluids = [Fluid(direc, number=0)]
+
+        # Dust fluids
+        for n in range(1, self.n_dust + 1):
+            self.Fluids.append(Fluid(direc, number=n))
+
+    def read(self, number):
+        for fluid in self.Fluids:
+            fluid.read(number)
+
 def max_save(direc):
     n = 0
     for file in listdir(direc):
@@ -59,7 +84,7 @@ def max_save(direc):
 
     return n
 
-def Fourier(direc, time_stamps, n_dust, Kx, Kz):
+def Fourier(direc, time_stamps, Kx, Kz):
     coord = Coordinates(direc)
 
     dx = coord.x[1] - coord.x[0]
@@ -70,28 +95,30 @@ def Fourier(direc, time_stamps, n_dust, Kx, Kz):
     xmin = x - 0.5*dx
     zmin = z - 0.5*dz
 
-    ret = np.empty((len(time_stamps), 4*(n_dust+1)), dtype=np.complex128)
+    expmed = np.exp(-1j*(Kx*x + Kz*z))
+    expminx = np.exp(-1j*(Kx*xmin + Kz*z))
+    expminz = np.exp(-1j*(Kx*x + Kz*zmin))
 
-    fluids = [Fluid(direc)]
-    for j in range(1, n_dust + 1):
-        fluids.append(Fluid(direc, number=j))
+    pf = PolyFluid(direc)
 
-    t = 0
-    for n in time_stamps:
-        indx = 0
-        for fluid in fluids:
-            fluid.read(n)
+    ret = np.empty((len(time_stamps), 4*(pf.n_dust+1)), dtype=np.complex128)
 
-            ret[t,indx+0] = np.mean(fluid.dens[:,0,:]*np.exp(-1j*(Kx*x + Kz*z)))
-            ret[t,indx+1] = np.mean(fluid.velx[:,0,:]*np.exp(-1j*(Kx*xmin + Kz*z)))
-            ret[t,indx+2] = np.mean(fluid.vely[:,0,:]*np.exp(-1j*(Kx*x + Kz*z)))
-            ret[t,indx+3] = np.mean(fluid.velz[:,0,:]*np.exp(-1j*(Kx*x + Kz*zmin)))
+    for t, n in enumerate(time_stamps):
+        pf.read(n)
 
-            indx += 4
-        t += 1
+        for indx, fluid in enumerate(pf.Fluids):
+            ret[t,4*indx+0] = np.mean(fluid.dens[:,0,:]*expmed)
+            ret[t,4*indx+1] = np.mean(fluid.velx[:,0,:]*expminx)
+            ret[t,4*indx+2] = np.mean(fluid.vely[:,0,:]*expmed)
+            ret[t,4*indx+3] = np.mean(fluid.velz[:,0,:]*expminz)
+
     return ret
 
 direcs = ['/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu3/']
+
+pf = PolyFluid(direcs[0])
+
+#direcs = ['/Users/sjp/Codes/psi_fargo/data/psi_mu10/N64/']
 
 #direcs = ['/Users/sjp/Codes/psi_fargo/data/linearA/N8/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N16/',
@@ -99,25 +126,32 @@ direcs = ['/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu3/']
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N64/']
 
 for direc in direcs:
-    ret = Fourier(direc, range(0, max_save(direc)), 8, 10, 10)
+    ret = Fourier(direc, range(0, max_save(direc)), 0, 0)
+
+    data = np.genfromtxt(direc + '/variables.par',dtype='str')
+    dt = 0.0
+    n = 1
+    for d in data:
+        if d[0] == 'DT':
+            dt = float(d[1])
+        if d[0] == 'NINTERM':
+            n = int(d[1])
+
+    print(dt, n)
+    t = dt*n*np.arange(len(ret[:,4]))
 
 
-    #print(ret[-1,0]/ret[-1,4])
-    #print(ret[-1,1]/ret[-1,4])
-    #print(ret[-1,2]/ret[-1,4])
-    #print(ret[-1,3]/ret[-1,4])
-    #print(ret[-1,5]/ret[-1,4])
-    #print(ret[-1,6]/ret[-1,4])
-    #print(ret[-1,7]/ret[-1,4])
+    #for i in range(0, len(ret[0,:])):
+    #    plt.plot(t, np.abs(ret[:,i]))
 
-    t = 1.0*np.arange(len(ret[:,4]))
 
-    for i in range(0, len(ret[0,:])):
-        plt.plot(t, np.abs(ret[:,i]))
-
+    #for i in range(0, np.int(len(ret[0,:])/4)):
+    #    plt.plot(t, np.abs(ret[:,4*i+1]))
+    plt.plot(pf.stopping_times, np.abs(ret[0,5::4])) # vx as a function of size
+    plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
 #plt.plot(t, 1.0e-4*np.exp(0.3027*t))
 
-plt.yscale('log')
+plt.xscale('log')
 plt.show()
 
 exit()
