@@ -19,12 +19,16 @@ class Polydust():
         self.sigma = None
         # Continuous size distribution
         if isinstance(size_distribution, SizeDistribution):
+            print('Continuous size distribution')
             self.sigma = size_distribution.sigma
         else:
             if size_distribution is None:
                 # MRN, normalized to unity
+                print('Continuous MRN size distribution')
                 size_distribution = SizeDistribution(stokes_range)
             else:
+                print('Discrete dust sizes')
+                self.N = len(stokes_range)
                 # Discrete sizes passed, size should be the same as stokes_range
                 self.sigma = np.asarray(size_distribution)
 
@@ -74,7 +78,7 @@ class Polydust():
             J1 = quad(f, self.stokes_range[0], self.stokes_range[1])[0]
 
             J0 = J0*dust_to_gas_ratio
-            J0 = J0*dust_to_gas_ratio
+            J1 = J1*dust_to_gas_ratio
 
             denom = (1 + J0)*(1 + J0) + J1*J1
             v = []
