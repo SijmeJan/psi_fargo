@@ -16,7 +16,17 @@ def veq_num(eps, T):
     return np.linalg.solve(A, b)
 
 def write_condinit_file(pd, dust_total_density, perturbation=None):
-    stokes, sigma = pd.dust_densities(dust_total_density)
+    # Get Stokes numbers, dust densities and equilibrium velocities
+    stokes, sigma, v = \
+      pd.initial_conditions(dust_total_density, 1.0)
+
+    vgx = v[0]
+    vgy = v[1]
+    vgz = v[2]
+
+    vdx = v[3::3]
+    vdy = v[4::3]
+    vdz = v[5::3]
 
     # Numerical equilibrium
     #veq = veq_num(sigma[0], stokes[0])
@@ -27,16 +37,16 @@ def write_condinit_file(pd, dust_total_density, perturbation=None):
     #vdy = np.array([veq[3]])
     #vdz = 0.0*stokes
 
-    AN = np.sum(sigma*stokes/(1 + stokes*stokes))
-    BN = 1.0 + np.sum(sigma/(1 + stokes*stokes))
+    #AN = np.sum(sigma*stokes/(1 + stokes*stokes))
+    #BN = 1.0 + np.sum(sigma/(1 + stokes*stokes))
 
-    vgx = 2*AN/(AN*AN + BN*BN)
-    vgy = -BN/(AN*AN + BN*BN)     # Excluding background shear
-    vgz = 0.0
+    #vgx = 2*AN/(AN*AN + BN*BN)
+    #vgy = -BN/(AN*AN + BN*BN)     # Excluding background shear
+    #vgz = 0.0
 
-    vdx = (vgx + 2*stokes*vgy)/(1 + stokes*stokes)
-    vdy = (vgy - 0.5*stokes*vgx)/(1 + stokes*stokes)
-    vdz = 0.0*stokes
+    #vdx = (vgx + 2*stokes*vgy)/(1 + stokes*stokes)
+    #vdy = (vgy - 0.5*stokes*vgx)/(1 + stokes*stokes)
+    #vdz = 0.0*stokes
 
     # Convert to FARGO standard where y=x and x=y....
     vgx, vgy = vgy, vgx
@@ -45,7 +55,7 @@ def write_condinit_file(pd, dust_total_density, perturbation=None):
     pert = perturbation
     if perturbation is None:
         pert=[]
-        for i in range(0, 4*n_dust+4):
+        for i in range(0, 4*len(vdx)+4):
             pert.append('')
 
     lines = \
@@ -95,10 +105,6 @@ def write_condinit_file(pd, dust_total_density, perturbation=None):
            '  for (k=0; k<Nz+2*NGHZ; k++) {\n',
            '    for (j=0; j<Ny+2*NGHY; j++) {\n',
            '      for (i=0; i<Nx+2*NGHX; i++) {\n',
-#           '        rho[l] = {} + '.format(sigma[n]) + str_perturbation(amp, Kx, Kz, drhod[n]) + ';\n',
-#           '        vx[l]  = {} + '.format(vdx[n]) + str_perturbation(amp, Kx, Kz, dvdx[n]) + ' - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);\n',
-#           '        vy[l]  = {} + '.format(vdy[n]) + str_perturbation(amp, Kx, Kz, dvdy[n], stagger='y') + ';\n',
-#           '        vz[l]  = {} + '.format(vdz[n]) + str_perturbation(amp, Kx, Kz, dvdz[n], stagger='z') + ';\n',
            '        rho[l] = {} '.format(sigma[n]) + pert[4*n+4] + ';\n',
            '        vx[l]  = {} '.format(vdx[n]) + pert[4*n+5] + ' - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);\n',
            '        vy[l]  = {} '.format(vdy[n]) + pert[4*n+6] + ';\n',
