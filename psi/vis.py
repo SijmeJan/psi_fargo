@@ -17,8 +17,12 @@ class Coordinates:
         z = np.loadtxt(direc + 'domain_z.dat')[3:-4]
 
         #dx = x[1] - x[0]
-        dx = x[1] - x[0]
-        dz = z[1] - z[0]
+        dx = 0.0
+        if len(x) > 1:
+            dx = x[1] - x[0]
+        dz = 0.0
+        if len(z) > 1:
+            dz = z[1] - z[0]
 
         # Coordinates of cell *centres*
         #self.x = x + 0.5*dx
@@ -87,8 +91,12 @@ def max_save(direc):
 def Fourier(direc, time_stamps, Kx, Kz):
     coord = Coordinates(direc)
 
-    dx = coord.x[1] - coord.x[0]
-    dz = coord.z[1] - coord.z[0]
+    dx = 0.0
+    if len(coord.x) > 1:
+        dx = coord.x[1] - coord.x[0]
+    dz = 0.0
+    if len(coord.z) > 1:
+        dz = coord.z[1] - coord.z[0]
 
     x, z = np.meshgrid(coord.x, coord.z, sparse=False, indexing='xy')
 
@@ -106,6 +114,8 @@ def Fourier(direc, time_stamps, Kx, Kz):
     for t, n in enumerate(time_stamps):
         pf.read(n)
 
+        #print(t, pf.Fluids[0].velx)
+
         for indx, fluid in enumerate(pf.Fluids):
             ret[t,4*indx+0] = np.mean(fluid.dens[:,0,:]*expmed)
             ret[t,4*indx+1] = np.mean(fluid.velx[:,0,:]*expminx)
@@ -116,17 +126,18 @@ def Fourier(direc, time_stamps, Kx, Kz):
 
 direcs = ['/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu3/']
 
-pf = PolyFluid(direcs[0])
 
-#direcs = ['/Users/sjp/Codes/psi_fargo/data/psi_mu10/N64/']
+#direcs = ['/Users/sjp/Codes/psi_fargo/data/psi_mu10/N32/']
 
 #direcs = ['/Users/sjp/Codes/psi_fargo/data/linearA/N8/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N16/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N32/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N64/']
 
+pf = PolyFluid(direcs[0])
+
 for direc in direcs:
-    ret = Fourier(direc, range(0, max_save(direc)), 0, 0)
+    ret = Fourier(direc, range(0, max_save(direc)), 60, 60)
 
     data = np.genfromtxt(direc + '/variables.par',dtype='str')
     dt = 0.0
@@ -137,7 +148,6 @@ for direc in direcs:
         if d[0] == 'NINTERM':
             n = int(d[1])
 
-    print(dt, n)
     t = dt*n*np.arange(len(ret[:,4]))
 
 
@@ -145,16 +155,23 @@ for direc in direcs:
     #    plt.plot(t, np.abs(ret[:,i]))
 
 
-    #for i in range(0, np.int(len(ret[0,:])/4)):
-    #    plt.plot(t, np.abs(ret[:,4*i+1]))
-    plt.plot(pf.stopping_times, np.abs(ret[0,5::4])) # vx as a function of size
-    plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
+    for i in range(1, int(len(ret[0,:])/4)):
+        plt.plot(t, np.abs(ret[:,4*i+1]))
+    #plt.plot(pf.stopping_times, np.abs(ret[0,5::4])) # vx as a function of size
+    #plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
+
+    #plt.plot(pf.stopping_times, np.real(ret[0,5::4])) # vx as a function of size
+    #plt.plot(pf.stopping_times, np.real(ret[-1,5::4]))
+    #tau = pf.stopping_times
+    #plt.plot(pf.stopping_times, -2*tau/(1 + tau*tau))
 #plt.plot(t, 1.0e-4*np.exp(0.3027*t))
 
-plt.xscale('log')
+#plt.plot(t, np.abs(ret[:,4]))
+
+#plt.xscale('log')
 plt.show()
 
-exit()
+#exit()
 
 
 #direc = '/Users/sjp/Codes/psi_fargo/data/linearA/N32/'
@@ -175,21 +192,18 @@ exit()
 #vz = Scalar(direc + 'monitor/gas/momz.dat')
 #plt.plot(vz.t, vz.val)
 
-direc = '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
-vz = Scalar(direc + 'monitor/gas/momz.dat')
-plt.plot(vz.t, vz.val)
-plt.plot(vz.t, 1.0e-11*np.exp(2*0.0154862262*vz.t))
+#direc = '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
+#vz = Scalar(direc + 'monitor/gas/momz.dat')
+#plt.plot(vz.t, vz.val)
+#plt.plot(vz.t, 1.0e-11*np.exp(2*0.0154862262*vz.t))
 
 
 #vz = Scalar(direc + 'monitor/gas/momz.dat')
 #plt.plot(vz.t, vz.val)
 
-plt.yscale('log')
+#plt.yscale('log')
 
-AN = 3*0.1/(1 + 0.1*0.1)
-BN = 1 + 3/(1 + 0.1*0.1)
-
-plt.show()
+#plt.show()
 
 #exit()
 

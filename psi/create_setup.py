@@ -10,24 +10,24 @@ import fargo_boundary
 from polydust import Polydust, SizeDistribution
 
 # Number of dust fluids/ dust nodes
-n_dust = 64
+n_dust = 8
 
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: all Stokes numbers
-#stokes_range = [0.0425, 0.1]
-stokes_range = [1.0e-8, 0.1]
+#stokes_range = np.logspace(np.log10(1.0e-8), np.log10(0.1), n_dust)
+stokes_range = [1.0e-3, 0.1]
 
 # For continuum: SizeDistribution object
 # For discrete multifluid: all dust densities
-#size_distribution = [1.0, 0.5]
+#size_distribution = SizeDistribution([1.0e-8, 0.1]).sigma(stokes_range)
 size_distribution = SizeDistribution(stokes_range)
 
 pd = Polydust(n_dust, stokes_range, size_distribution)
-dust_total_density = 10.0
+dust_total_density = 2.0
 
 # Add single mode perturbation
-Kx = 100
-Kz = 100
+Kx = 60
+Kz = 60
 #mode = single_mode.Linear3(1.0e-4)
 mode = single_mode.RandomFixedK(n_dust, 1.0e-4, Kx, Kz)
 
