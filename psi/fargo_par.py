@@ -1,8 +1,11 @@
 from common import *
 
-def write_par_file(setup_name, box_size, grid, pd):
+def write_par_file(setup_name, pd, shearing_box):
     n_dust = pd.N
     stokes = pd.dust_nodes()
+
+    box_size = shearing_box.dims
+    grid = shearing_box.mesh_size
 
     lines = ['# PSI FARGO2D setup using ' + str(n_dust) + ' dust fluids\n\n']
 
@@ -23,13 +26,13 @@ def write_par_file(setup_name, box_size, grid, pd):
 
     add_line(lines, '\n### Mesh parameters\n\n')
 
-    add_line(lines, 'Ny         {}      Number of \'radial\' zones\n'.format(grid[0]))
-    add_line(lines, 'Nz         {}      Number of vertical zones\n'.format(grid[1]))
+    add_line(lines, 'Ny         {}      Number of \'radial\' zones\n'.format(grid[1]))
+    add_line(lines, 'Nz         {}      Number of vertical zones\n'.format(grid[2]))
 
-    add_line(lines, 'Ymin              ' + str(-0.5*box_size[0]) + '\n')
-    add_line(lines, 'Ymax              ' + str(0.5*box_size[0]) + '\n')
-    add_line(lines, 'Zmin              ' + str(-0.5*box_size[1]) + '\n')
-    add_line(lines, 'Zmax              ' + str(0.5*box_size[1]) + '\n')
+    add_line(lines, 'Ymin              ' + str(-0.5*box_size[1]) + '\n')
+    add_line(lines, 'Ymax              ' + str(0.5*box_size[1]) + '\n')
+    add_line(lines, 'Zmin              ' + str(-0.5*box_size[2]) + '\n')
+    add_line(lines, 'Zmax              ' + str(0.5*box_size[2]) + '\n')
 
     add_line(lines, 'PeriodicY          YES\n')
     add_line(lines, 'PeriodicZ          YES\n')
