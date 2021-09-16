@@ -12,9 +12,13 @@ class SizeDistribution():
         return 0.5/(np.sqrt(x)*(np.sqrt(self.taumax) - np.sqrt(self.taumin)))
 
 class Polydust():
-    def __init__(self, n_dust, stokes_range, size_distribution=None):
+    def __init__(self, n_dust, stokes_range,
+                 dust_density, gas_density,
+                 size_distribution=None):
         self.N = n_dust
         self.stokes_range = np.asarray(stokes_range)
+        self.dust_density = dust_density
+        self.gas_density = gas_density
 
         self.sigma = None
         # Continuous size distribution
@@ -31,6 +35,8 @@ class Polydust():
                 self.N = len(stokes_range)
                 # Discrete sizes passed, size should be the same as stokes_range
                 self.sigma = np.asarray(size_distribution)
+                # Normalize to total dust density unity
+                self.sigma = self.sigma/np.sum(self.sigma)
 
     def dust_nodes(self):
         if callable(self.sigma):
@@ -49,7 +55,7 @@ class Polydust():
 
         return tau
 
-    def dust_densities(self, dust_total_density):
+    def dust_densities(self):
         if callable(self.sigma):
             xi, weights = roots_legendre(self.N)
 
@@ -62,29 +68,31 @@ class Polydust():
             tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
 
             # 'density' at nodes
-            dens = 0.5*np.log(q)*weights*tau*dust_total_density*self.sigma(tau)
+            dens = 0.5*np.log(q)*weights*tau*self.dust_density*self.sigma(tau)
         else:
             # Discrete dust sizes
             tau = self.stokes_range
-            dens = self.sigma
+            # Normalize so total dust_density is correct
+            dens = self.dust_density*self.sigma
 
         return tau, dens
 
-    def equilibrium_velocities(self, tau, dust_to_gas_ratio):
+    def equilibrium_velocities(self, tau):
         if callable(self.sigma):
             f = lambda x: self.sigma(x)/(1.0 + x*x)
             J0 = quad(f, self.stokes_range[0], self.stokes_range[1])[0]
             f = lambda x: self.sigma(x)*x/(1.0 + x*x)
             J1 = quad(f, self.stokes_range[0], self.stokes_range[1])[0]
 
-            J0 = J0*dust_to_gas_ratio
-            J1 = J1*dust_to_gas_ratio
+            J0 = J0*self.dust_density/self.gas_density
+            J1 = J1*self.dust_density/self.gas_density
 
             denom = (1 + J0)*(1 + J0) + J1*J1
             v = []
             v.append(2*J1/denom)      # Gas vx
             v.append(-(1 + J0)/denom) # Gas vy
             v.append(0.0)             # Gas vz
+
 
             for t in tau:
                 v.append(2*(J1 - t*(1 + J0))/((1 + t*t)*denom))
@@ -93,8 +101,9 @@ class Polydust():
         else:
             tau = np.asarray(self.stokes_range)
 
-            AN = np.sum(self.sigma*tau/(1 + tau*tau))
-            BN = 1.0 + np.sum(self.sigma/(1 + tau*tau))
+            mu = self.dust_density/self.gas_density
+            AN = mu*np.sum(self.sigma*tau/(1 + tau*tau))
+            BN = 1.0 + mu*np.sum(self.sigma/(1 + tau*tau))
 
             v = []
             v.append(2*AN/(AN*AN + BN*BN))   # Gas vx
@@ -108,10 +117,9 @@ class Polydust():
 
         return np.asarray(v)
 
-    def initial_conditions(self, dust_total_density, gas_density):
-        tau, dens = self.dust_densities(dust_total_density)
+    def initial_conditions(self):
+        tau, dens = self.dust_densities()
 
-        mu = dust_total_density/gas_density
-        v = self.equilibrium_velocities(tau, mu)
+        v = self.equilibrium_velocities(tau)
 
         return tau, dens, v
