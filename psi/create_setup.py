@@ -9,21 +9,72 @@ import fargo_par
 import fargo_boundary
 from polydust import Polydust, SizeDistribution
 
+class ShearingBox:
+    def __init__(self, dims=None, mesh_size=None):
+        self.dims = dims
+        self.mesh_size = mesh_size
+
+class FargoSetup:
+    def __init__(self, setup_name, fargo_dir=None):
+        self.setup_name = setup_name
+
+        self.fargo_dir = fargo_dir
+
+        # Installation directory not supplied: guess
+        if fargo_dir is None:
+            guess_dir = ['/Users/sjp/Codes/psi_fargo',
+                         '/astro/sjp/Codes/psi_fargo']
+
+            for direc in guess_dir:
+                if os.path.isdir(direc):
+                    self.fargo_dir = direc
+
+        if self.fargo_dir is None:
+            raise RuntimeError('Could not figure out FARGO installation directory!')
+        print('Using Fargo directory ' + self.fargo_dir)
+
+    def create(self, polydust, mode, shearing_box):
+        created_files = [self.setup_name + '.opt',
+                         self.setup_name + '.par',
+                         'condinit.c']
+        fargo_opt.write_opt_file(self.setup_name, polydust)
+        fargo_par.write_par_file(self.setup_name, polydust, shearing_box)
+        initial_conditions.write_condinit_file(polydust,
+                                               perturbation=mode.to_string())
+        created_files.extend(fargo_boundary.write_boundary_files(self.setup_name, polydust.N))
+
+        # Create setup directory if not exists
+        output_dir = self.fargo_dir + '/public/setups/' + self.setup_name
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        else:
+            print("Warning: setup directory exists; contents will be overwritten")
+
+        # Move all created files to setup directory
+        for f in created_files:
+            os.replace(f, output_dir + '/' + f)
+
+        shutil.copy('boundaries.txt', output_dir + '/' + 'boundaries.txt')
+
+        print('Setup created: ' + output_dir)
+
 # Number of dust fluids/ dust nodes
 n_dust = 8
 
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: all Stokes numbers
-#stokes_range = np.logspace(np.log10(1.0e-8), np.log10(0.1), n_dust)
-stokes_range = [1.0e-3, 0.1]
+stokes_range = np.logspace(np.log10(1.0e-3), np.log10(0.1), n_dust)
+#stokes_range = [1.0e-3, 0.1]
 
 # For continuum: SizeDistribution object
 # For discrete multifluid: all dust densities
-#size_distribution = SizeDistribution([1.0e-8, 0.1]).sigma(stokes_range)
-size_distribution = SizeDistribution(stokes_range)
+size_distribution = stokes_range*(np.log10(stokes_range[1]) - np.log10(stokes_range[0]))*SizeDistribution([1.0e-3, 0.1]).sigma(stokes_range)
+#size_distribution = SizeDistribution(stokes_range)
+dust_density = 2.0
+gas_density = 1.0
 
-pd = Polydust(n_dust, stokes_range, size_distribution)
-dust_total_density = 2.0
+pd = Polydust(n_dust, stokes_range, dust_density,
+              gas_density, size_distribution)
 
 # Add single mode perturbation
 Kx = 60
@@ -31,32 +82,16 @@ Kz = 60
 #mode = single_mode.Linear3(1.0e-4)
 mode = single_mode.RandomFixedK(n_dust, 1.0e-4, Kx, Kz)
 
-fargo_dir = '/Users/sjp/Codes/psi_fargo/public/setups'
-setup_name = 'psi_mu2'         # Name of the PSI setup
 Ly = 2*np.pi/mode.Kx            # 'radial' box size
 Lz = 2*np.pi/mode.Kz            # vertical box size
 Ny = 32                         # 'radial' number of grid points
 Nz = 32                         # vertical number of grid points
 
+shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
-# Create all files needed for FARGO setup
-created_files = []
-created_files.append(fargo_opt.write_opt_file(setup_name, pd))
-created_files.append(fargo_par.write_par_file(setup_name, [Ly, Lz], [Ny, Nz], pd))
-created_files.append(initial_conditions.write_condinit_file(pd, dust_total_density, perturbation=mode.to_string()))
-created_files.extend(fargo_boundary.write_boundary_files(setup_name, n_dust))
+try:
+    setup = FargoSetup('psi_mu2_discrete')
+except:
+    raise
 
-# Create setup directory if not exists
-output_dir = fargo_dir + '/' + setup_name
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-else:
-    print("Warning: setup directory exists; contents will be overwritten")
-
-# Move all created files to setup directory
-for f in created_files:
-    os.replace(f, output_dir + '/' + f)
-
-shutil.copy('boundaries.txt', output_dir + '/' + 'boundaries.txt')
-
-print('Setup created: ' + output_dir)
+setup.create(pd, mode, shearing_box)

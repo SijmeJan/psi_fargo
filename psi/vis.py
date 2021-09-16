@@ -124,170 +124,77 @@ def Fourier(direc, time_stamps, Kx, Kz):
 
     return ret
 
-direcs = ['/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu3/']
+def FourierPlot(direcs, Kx, Kz):
+    for direc in direcs:
+        ret = Fourier(direc, range(0, max_save(direc)), Kx, Kz)
+
+        data = np.genfromtxt(direc + '/variables.par',dtype='str')
+        dt = 0.0
+        n = 1
+        for d in data:
+            if d[0] == 'DT':
+                dt = float(d[1])
+            if d[0] == 'NINTERM':
+                n = int(d[1])
+
+        t = dt*n*np.arange(len(ret[:,4]))
+
+        #for i in range(1, int(len(ret[0,:])/4)):
+        #    plt.plot(t, np.abs(ret[:,4*i+1]))
+        plt.plot(t, np.abs(ret[:,1]))
+
+        #plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
+
+        #plt.plot(pf.stopping_times, np.real(ret[0,5::4])) # vx as a function of size
+        #plt.plot(pf.stopping_times, np.real(ret[-1,5::4]))
+        #tau = pf.stopping_times
+        #plt.plot(pf.stopping_times, -2*tau/(1 + tau*tau))
+
+    plt.plot(t, 1.0e-4*np.exp(0.09766*t))
+
+    plt.yscale('log')
+    plt.show()
+
+#direcs = ['/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu2_discrete/']
+
+direcs = [
+          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32/',
+          '/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu2_discrete/',
+          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/',
+          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
+         ]
+
+FourierPlot(direcs, 60, 60)
+
+#for direc in direcs:
+#    pf = PolyFluid(direc)
+
+#    ret = Fourier(direc, range(0, max_save(direc)), 0, 0)
+
+#    plt.plot(pf.stopping_times, np.real(ret[0,5::4]))
 
 
-#direcs = ['/Users/sjp/Codes/psi_fargo/data/psi_mu10/N32/']
+#exit()
+
+
+#plt.yscale('log')
+#plt.show()
 
 #direcs = ['/Users/sjp/Codes/psi_fargo/data/linearA/N8/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N16/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N32/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N64/']
 
-pf = PolyFluid(direcs[0])
+#direc = '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32/'
 
-for direc in direcs:
-    ret = Fourier(direc, range(0, max_save(direc)), 60, 60)
+#coord = Coordinates(direc)
 
-    data = np.genfromtxt(direc + '/variables.par',dtype='str')
-    dt = 0.0
-    n = 1
-    for d in data:
-        if d[0] == 'DT':
-            dt = float(d[1])
-        if d[0] == 'NINTERM':
-            n = int(d[1])
+#gas = Fluid(direc)
+#gas.read(max_save(direc)-1)
+#dust = Fluid(direc, number=1)
+#dust.read(max_save(direc)-1)
 
-    t = dt*n*np.arange(len(ret[:,4]))
-
-
-    #for i in range(0, len(ret[0,:])):
-    #    plt.plot(t, np.abs(ret[:,i]))
-
-
-    for i in range(1, int(len(ret[0,:])/4)):
-        plt.plot(t, np.abs(ret[:,4*i+1]))
-    #plt.plot(pf.stopping_times, np.abs(ret[0,5::4])) # vx as a function of size
-    #plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
-
-    #plt.plot(pf.stopping_times, np.real(ret[0,5::4])) # vx as a function of size
-    #plt.plot(pf.stopping_times, np.real(ret[-1,5::4]))
-    #tau = pf.stopping_times
-    #plt.plot(pf.stopping_times, -2*tau/(1 + tau*tau))
-#plt.plot(t, 1.0e-4*np.exp(0.3027*t))
-
-#plt.plot(t, np.abs(ret[:,4]))
-
-#plt.xscale('log')
-plt.show()
-
-#exit()
-
-
-#direc = '/Users/sjp/Codes/psi_fargo/data/linearA/N32/'
-#vz = Scalar(direc + 'monitor/gas/momz.dat')
-#plt.plot(vz.t, vz.val)
-
-#plt.plot(vz.t, 1.0e-11*np.exp(0.84*vz.t))
-
-#direc = '/Users/sjp/Codes/psi_fargo/data/linearA/N64/'
-#vz = Scalar(direc + 'monitor/gas/momz.dat')
-#plt.plot(vz.t, vz.val)
-
-#direc = '/Users/sjp/Codes/psi_fargo/data/linearA/N128/'
-#vz = Scalar(direc + 'monitor/gas/momz.dat')
-#plt.plot(vz.t, vz.val)
-
-#direc = '/Users/sjp/Codes/psi_fargo/data/linearA/N256/'
-#vz = Scalar(direc + 'monitor/gas/momz.dat')
-#plt.plot(vz.t, vz.val)
-
-#direc = '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
-#vz = Scalar(direc + 'monitor/gas/momz.dat')
-#plt.plot(vz.t, vz.val)
-#plt.plot(vz.t, 1.0e-11*np.exp(2*0.0154862262*vz.t))
-
-
-#vz = Scalar(direc + 'monitor/gas/momz.dat')
-#plt.plot(vz.t, vz.val)
-
-#plt.yscale('log')
-
-#plt.show()
-
-#exit()
-
-#direc = '/Users/sjp/Codes/psi_fargo/data/linearA/N64/'
-
-coord = Coordinates(direc)
-
-gas = Fluid(direc)
-gas.read(0)
-dust = Fluid(direc, number=1)
-dust.read(0)
-#print('Initial dvx:', np.mean(gas.vely-dust.vely))
-#gas.read(200)
-#dust.read(200)
-#print('Final dvx:', np.mean(gas.vely-dust.vely))
-
-
-
-def veq_num(eps, T):
-    # Numerical equilibrium (vy's without background shear)
-    #2*vgy + 2*chi*R - eps*(vgx - vdx)/T = 0
-    #2*vgx + eps*(vgy - vdy)/T = 0
-    #2*vdy - (vdx - vgx)/T = 0
-    #2*vdx + (vdy - vgy)/T = 0
-
-    A = np.array([[-eps/T, 2, eps/T, 0], [2, eps/T, 0, -eps/T],
-                  [1/T, 0, -1/T, 2], [0, -1/T, 2, 1/T]])
-    b = np.array([-2, 0, 0, 0])
-
-    return np.linalg.solve(A, b)
-
-def veq_ana(eps, T):
-    A = eps*T/(1+T*T)
-    B = 1 + eps/(1+T*T)
-
-    vgx = 2*A/(A*A + B*B)
-    vgy = -B/(A*A + B*B)
-
-    vdx = (vgx + 2*T*vgy)/(1+T*T)
-    vdy = (vgy - 0.5*T*vgx)/(1 + T*T)
-
-    return np.array([vgx, vgy, vdx, vdy])
-
-def eq(p):
-    eps, T = p
-
-    v_num = veq_num(eps, T)
-    v_ana = veq_ana(eps, T)
-
-    return (v_num[0] - v_ana[0], v_num[1] - v_ana[1])
-
-
-#veq = veq_num(3, 0.1)
-#print(veq[0] - veq[2])
-
-#import numpy as np
-#rng = np.random.default_rng(12345)
-
-#min_y = 0
-
-#for times in range(0, 100000):
-#    eps = 10*rng.random()
-#    T = rng.random()
-
-#    ret, info, err, msg =  fsolve(eq, (eps, T), full_output=1)
-
-#    x = ret[0]
-#    y = ret[1]
-
-#    if x > 0.1 and x < 100 and y > min_y and y < 1.0 and err==1:
-#        print(x, y, veq_num(x,y), veq_ana(x, y))
-
-#        min_y = y
-
-
-#nx = 1
-#ny = len(coord.y)
-#nz = len(coord.z)
-
-#rho = np.fromfile(direc + 'gasvy0.dat').reshape(nz,ny,nx)
-
-#plt.contourf(coord.y, coord.z, dust.dens[:,:,0], levels=100)
-plt.plot(coord.y, dust.dens[:,0,0])
-plt.plot(coord.y + 2.0*np.pi/6.0, dust.dens[:,0,0])
+#plt.contourf(coord.x,coord.z, dust.dens[:,0,:], levels=100)
 #plt.colorbar()
 
-plt.show()
+#plt.show()
