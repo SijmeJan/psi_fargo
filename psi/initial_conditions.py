@@ -15,10 +15,9 @@ def veq_num(eps, T):
 
     return np.linalg.solve(A, b)
 
-def write_condinit_file(pd, dust_total_density, perturbation=None):
+def write_condinit_file(pd, perturbation=None):
     # Get Stokes numbers, dust densities and equilibrium velocities
-    stokes, sigma, v = \
-      pd.initial_conditions(dust_total_density, 1.0)
+    stokes, sigma, v = pd.initial_conditions()
 
     vgx = v[0]
     vgy = v[1]
@@ -27,26 +26,6 @@ def write_condinit_file(pd, dust_total_density, perturbation=None):
     vdx = v[3::3]
     vdy = v[4::3]
     vdz = v[5::3]
-
-    # Numerical equilibrium
-    #veq = veq_num(sigma[0], stokes[0])
-    #vgx = veq[0]
-    #vgy = veq[1]
-    #vgz = 0.0
-    #vdx = np.array([veq[2]])
-    #vdy = np.array([veq[3]])
-    #vdz = 0.0*stokes
-
-    #AN = np.sum(sigma*stokes/(1 + stokes*stokes))
-    #BN = 1.0 + np.sum(sigma/(1 + stokes*stokes))
-
-    #vgx = 2*AN/(AN*AN + BN*BN)
-    #vgy = -BN/(AN*AN + BN*BN)     # Excluding background shear
-    #vgz = 0.0
-
-    #vdx = (vgx + 2*stokes*vgy)/(1 + stokes*stokes)
-    #vdy = (vgy - 0.5*stokes*vgx)/(1 + stokes*stokes)
-    #vdz = 0.0*stokes
 
     # Convert to FARGO standard where y=x and x=y....
     vgx, vgy = vgy, vgx
@@ -77,10 +56,6 @@ def write_condinit_file(pd, dust_total_density, perturbation=None):
        '  for (k=0; k<Nz+2*NGHZ; k++) {\n',
        '    for (j=0; j<Ny+2*NGHY; j++) {\n',
        '      for (i=0; i<Nx+2*NGHX; i++) {\n',
-#       '        rho[l] = 1.0 + '+ str_perturbation(amp, Kx, Kz, drhog) + ';\n',
-#       '        vx[l]  = {} + '.format(vgx) + str_perturbation(amp, Kx, Kz, dvgx) + ' - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);\n',
-#       '        vy[l]  = {} + '.format(vgy) + str_perturbation(amp, Kx, Kz, dvgy, stagger='y') + ';\n',
-#       '        vz[l]  = {} + '.format(vgz) + str_perturbation(amp, Kx, Kz, dvgz, stagger='z') + ';\n',
        '        rho[l] = 1.0 '+ pert[0] + ';\n',
        '        vx[l]  = {} '.format(vgx) + pert[1] + ' - SHEARPARAM*OMEGAFRAME*OMEGAFRAME*Ymed(j);\n',
        '        vy[l]  = {} '.format(vgy) + pert[2] + ';\n',
