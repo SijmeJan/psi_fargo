@@ -26,6 +26,30 @@ omega = 1.0;
 #endif
 #endif
 
+// Explicit update
+
+#ifdef EXPLICIT_DRAG
+
+for (o=0; o<NFLUIDS; o++) {
+  b[o] = velocities_input[o][l];
+  for (p=0; p<NFLUIDS; p++) {
+    rho_p  = 0.5*(rho[p][l] + rho[p][idm]);
+    temp = velocities_input[o][l] - velocities_input[p][l];
+    if (p != o) {
+      rho_o  = 0.5*(rho[o][l] + rho[o][idm]);
+
+
+      if ( p > o ) {
+        b[o] -= dt*omega*alpha[p+o*NFLUIDS]*temp*rho_p/rho_o;
+      } else {
+        b[o] -= dt*omega*alpha[p+o*NFLUIDS]*temp;
+      }
+    }
+  }
+}
+
+#else  // EXPLICIT_DRAG
+
 // In the implementation below, alpha --> 1/St
 
 for (o=0; o<NFLUIDS; o++) {
@@ -91,3 +115,5 @@ for (o=0; o<NFLUIDS; o++) {
   }
   b[o] = velocities_input[o][l];
  }
+
+#endif   // no EXPLICIT_DRAG
