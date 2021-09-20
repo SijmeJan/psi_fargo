@@ -124,7 +124,11 @@ void SubStep1_x_cpu (real dt) {
 
 #ifdef SHEARINGBOX
 
+#ifdef SHEAR_COORDINATES
+        vx_temp[l] += dt*(SHEARPARAM - 2.0)*OMEGAFRAME*0.25*(vy_half[l]+vy_half[lxm]+vy_half[lyp]+vy_half[lxm+pitch]);
+#else
         vx_temp[l] -= dt*2.0*OMEGAFRAME*0.25*(vy_half[l]+vy_half[lxm]+vy_half[lyp]+vy_half[lxm+pitch]);
+#endif
 
 #endif //ENDIF SHEARINGBOX
 
