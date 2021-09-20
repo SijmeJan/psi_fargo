@@ -1,7 +1,7 @@
-# PSI FARGO2D setup using 1 dust fluids
+# PSI FARGO2D setup using 2 dust fluids
 
-FLUIDS := 0 1
-NFLUIDS = 2
+FLUIDS := 0 1 2
+NFLUIDS = 3
 FARGO_OPT += -DNFLUIDS=${NFLUIDS}
 
 FARGO_OPT +=  -DX

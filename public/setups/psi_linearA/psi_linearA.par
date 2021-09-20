@@ -1,4 +1,4 @@
-# PSI FARGO2D setup using 1 dust fluids
+# PSI FARGO2D setup using 2 dust fluids
 
 Setup          psi_linearA
 
@@ -11,24 +11,23 @@ ShearParam         1.5      Shear rate
 
 ### Dust parameters
 
-Invstokes1        10.0   Inverse of the Stokes number for dust1
-
-Epsilon                 3.0    Dust-to-gas mass ratio
+Invstokes1        316.227532033849   Inverse of the Stokes number for dust1
+Invstokes2        31.62277320336795   Inverse of the Stokes number for dust2
 
 ### Mesh parameters
 
-Ny         32      Number of 'radial' zones
-Nz         32      Number of vertical zones
-Ymin              -0.10471975511965977
-Ymax              0.10471975511965977
-Zmin              -0.10471975511965977
-Zmax              0.10471975511965977
+Ny         64      Number of 'radial' zones
+Nz         64      Number of vertical zones
+Ymin              -0.05235987755982988
+Ymax              0.05235987755982988
+Zmin              -0.05235987755982988
+Zmax              0.05235987755982988
 PeriodicY          YES
 PeriodicZ          YES
 
 ### Output control parameters
 
-DT         0.1     Time step length
+DT         0.01     Time step length
 Ninterm    10      Time steps between outputs
-Ntot       1000    Total number of time steps
+Ntot       5000    Total number of time steps
 OutputDir      @outputs/psi_linearA

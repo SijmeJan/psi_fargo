@@ -59,38 +59,54 @@ class FargoSetup:
         print('Setup created: ' + output_dir)
 
 # Number of dust fluids/ dust nodes
-n_dust = 8
+n_dust = 2
+
+
+xi1 = np.log(0.001)
+xi2 = np.log(0.1)
+xi_edge = np.linspace(xi1, xi2, n_dust+1)
+
+Ts_edge = np.exp(xi_edge)
+Ts = xi_edge + 0.5*(xi_edge[1] - xi_edge[0])
+Ts = np.exp(Ts)[0:-1]
+
+q = np.power(Ts_edge, 0.5)
+
+eps = 2*(np.roll(q, -1) - q)/(q[-1] - q[0])
+eps = eps[0:-1]
+
 
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: all Stokes numbers
-stokes_range = np.logspace(np.log10(1.0e-3), np.log10(0.1), n_dust)
+stokes_range = [0.00316228, 0.03162278]  #[0.0425, 0.1]
 #stokes_range = [1.0e-3, 0.1]
 
 # For continuum: SizeDistribution object
 # For discrete multifluid: all dust densities
-size_distribution = stokes_range*(np.log10(stokes_range[1]) - np.log10(stokes_range[0]))*SizeDistribution([1.0e-3, 0.1]).sigma(stokes_range)
+size_distribution = [0.48050615, 1.51949385]
+#size_distribution = [0.8403834887142569, 4.2359685932218305]
 #size_distribution = SizeDistribution(stokes_range)
-dust_density = 2.0
+dust_density = 2.0  #np.sum(size_distribution)
 gas_density = 1.0
 
 pd = Polydust(n_dust, stokes_range, dust_density,
-              gas_density, size_distribution)
+              gas_density, size_distribution, gauss_legendre=False)
 
 # Add single mode perturbation
 Kx = 60
 Kz = 60
-#mode = single_mode.Linear3(1.0e-4)
+#mode = single_mode.Linear3(1.0e-6)
 mode = single_mode.RandomFixedK(n_dust, 1.0e-4, Kx, Kz)
 
 Ly = 2*np.pi/mode.Kx            # 'radial' box size
 Lz = 2*np.pi/mode.Kz            # vertical box size
-Ny = 32                         # 'radial' number of grid points
-Nz = 32                         # vertical number of grid points
+Ny = 64                         # 'radial' number of grid points
+Nz = 64                         # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
 try:
-    setup = FargoSetup('psi_mu2_discrete')
+    setup = FargoSetup('psi_linearA')
 except:
     raise
 

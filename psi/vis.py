@@ -140,8 +140,9 @@ def FourierPlot(direcs, Kx, Kz):
         t = dt*n*np.arange(len(ret[:,4]))
 
         #for i in range(1, int(len(ret[0,:])/4)):
-        #    plt.plot(t, np.abs(ret[:,4*i+1]))
+        #    plt.plot(t, np.abs(ret[:,4*i]))
         plt.plot(t, np.abs(ret[:,1]))
+        #plt.plot(t, np.real(ret[:,2] - ret[0,2]))
 
         #plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
 
@@ -150,34 +151,44 @@ def FourierPlot(direcs, Kx, Kz):
         #tau = pf.stopping_times
         #plt.plot(pf.stopping_times, -2*tau/(1 + tau*tau))
 
-    plt.plot(t, 1.0e-4*np.exp(0.09766*t))
+    #plt.plot(t, 1.0e-5*np.exp(0.4190091323*t))
+    plt.plot(t, 1.0e-5*np.exp(0.3027262829*t))
+    #plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
+    #plt.plot(t, 1.0e-5*np.exp(0.42185357935887124*t))
 
     plt.yscale('log')
     plt.show()
 
-#direcs = ['/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu2_discrete/']
-
 direcs = [
-          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32/',
-          '/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu2_discrete/',
-          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/',
-          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
-         ]
+          '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
+          #'/Users/sjp/Codes/psi_fargo/data/psi_linearA/'
+          ]
+
+#direcs = [
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32/',
+#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND8/',
+#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND16/',
+#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND32/',
+#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND64/'
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/',
+#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
+#         ]
 
 FourierPlot(direcs, 60, 60)
 
 #for direc in direcs:
 #    pf = PolyFluid(direc)
 
-#    ret = Fourier(direc, range(0, max_save(direc)), 0, 0)
+#    ret = Fourier(direc, range(0, max_save(direc)), 60, 60)
 
-#    plt.plot(pf.stopping_times, np.real(ret[0,5::4]))
-
-
-#exit()
+#    plt.plot(pf.stopping_times, np.real(ret[-1,4::4]))
 
 
-#plt.yscale('log')
+exit()
+
+
+
+#plt.xscale('log')
 #plt.show()
 
 #direcs = ['/Users/sjp/Codes/psi_fargo/data/linearA/N8/',
@@ -185,7 +196,7 @@ FourierPlot(direcs, 60, 60)
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N32/',
 #          '/Users/sjp/Codes/psi_fargo/data/linearA/N64/']
 
-#direc = '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32/'
+#direc = '/Users/sjp/Codes/psi_fargo/public/outputs/psi_mu2_discrete/'
 
 #coord = Coordinates(direc)
 
@@ -194,7 +205,7 @@ FourierPlot(direcs, 60, 60)
 #dust = Fluid(direc, number=1)
 #dust.read(max_save(direc)-1)
 
-#plt.contourf(coord.x,coord.z, dust.dens[:,0,:], levels=100)
+#plt.contourf(coord.x,coord.z, dust.velx[:,0,:], levels=100)
 #plt.colorbar()
 
 #plt.show()
