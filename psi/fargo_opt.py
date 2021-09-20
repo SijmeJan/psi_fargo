@@ -24,8 +24,11 @@ def write_opt_file(setup_name, pd):
     add_option(lines, 'SHEARINGBC')
     add_option(lines, 'ISOTHERMAL')
     #add_option(lines, 'STANDARD')
+    #add_option(lines, 'NOSUBSTEP2')
+    #add_option(lines, 'SHEAR_COORDINATES')
 
     add_option(lines, 'DRAGFORCE')
+    #add_option(lines, 'EXPLICIT_DRAG')
     add_option(lines, 'CONSTANTSTOKESNUMBER')
     #add_option(lines, 'COLLISIONPREDICTOR')
 
