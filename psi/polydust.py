@@ -14,21 +14,31 @@ class SizeDistribution():
 class Polydust():
     def __init__(self, n_dust, stokes_range,
                  dust_density, gas_density,
-                 size_distribution=None):
+                 size_distribution=None,
+                 gauss_legendre=True):
         self.N = n_dust
         self.stokes_range = np.asarray(stokes_range)
         self.dust_density = dust_density
         self.gas_density = gas_density
+        self.gauss_legendre = gauss_legendre
 
         self.sigma = None
         # Continuous size distribution
         if isinstance(size_distribution, SizeDistribution):
             print('Continuous size distribution')
+            if self.gauss_legendre is True:
+                print('Using Gauss-Legendre quadrature')
+            else:
+                print('Using equidistant nodes')
             self.sigma = size_distribution.sigma
         else:
             if size_distribution is None:
                 # MRN, normalized to unity
                 print('Continuous MRN size distribution')
+                if self.gauss_legendre is True:
+                    print('Using Gauss-Legendre quadrature')
+                else:
+                    print('Using equidistant nodes')
                 size_distribution = SizeDistribution(stokes_range)
             else:
                 print('Discrete dust sizes')
@@ -40,15 +50,27 @@ class Polydust():
 
     def dust_nodes(self):
         if callable(self.sigma):
-            xi, weights = roots_legendre(self.N)
+            if self.gauss_legendre is True:
+                xi, weights = roots_legendre(self.N)
 
-            xi = np.asarray(xi)
-            weights = np.asarray(weights)
+                xi = np.asarray(xi)
+                weights = np.asarray(weights)
 
-            q = self.stokes_range[1]/self.stokes_range[0]
+                q = self.stokes_range[1]/self.stokes_range[0]
 
-            # Stopping time nodes
-            tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
+                # Stopping time nodes
+                tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
+            else:
+                # Constant spacing in log tau space
+                #xi1 = np.log10(self.stokes_range[0])
+                #xi2 = np.log10(self.stokes_range[1])
+
+                #tau = np.logspace(xi1, xi2, self.N)
+
+                xi1 = np.log(self.stokes_range[0])
+                xi2 = np.log(self.stokes_range[1])
+
+                tau = np.exp(np.linspace(xi1, xi2, self.N))
         else:
             # Discrete dust sizes
             tau = self.stokes_range
@@ -57,23 +79,37 @@ class Polydust():
 
     def dust_densities(self):
         if callable(self.sigma):
-            xi, weights = roots_legendre(self.N)
+            if self.gauss_legendre is True:
+                xi, weights = roots_legendre(self.N)
 
-            xi = np.asarray(xi)
-            weights = np.asarray(weights)
+                xi = np.asarray(xi)
+                weights = np.asarray(weights)
 
-            q = self.stokes_range[1]/self.stokes_range[0]
+                q = self.stokes_range[1]/self.stokes_range[0]
 
-            # Stopping time nodes
-            tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
+                # Stopping time nodes
+                tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
 
-            # 'density' at nodes
-            dens = 0.5*np.log(q)*weights*tau*self.dust_density*self.sigma(tau)
+                # 'density' at nodes
+                dens=0.5*np.log(q)*weights*tau*self.dust_density*self.sigma(tau)
+            else:
+                # Constant spacing in log tau space
+                xi1 = np.log(self.stokes_range[0])
+                xi2 = np.log(self.stokes_range[1])
+
+                xi = np.linspace(xi1, xi2, self.N)
+                dxi = xi[1] - xi[0]
+                tau = np.exp(xi)
+
+
+                dens = 0.5*tau*(xi2 - xi1)*self.dust_density*self.sigma(tau)*dxi
         else:
             # Discrete dust sizes
             tau = self.stokes_range
             # Normalize so total dust_density is correct
             dens = self.dust_density*self.sigma
+
+        print('Total dust density: ', np.sum(dens))
 
         return tau, dens
 
