@@ -76,16 +76,16 @@ eps = eps[0:-1]
 
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: all Stokes numbers
-stokes_range = Ts
+#stokes_range = Ts
 #stokes_range = [0.00316228, 0.03162278]  #[0.0425, 0.1]
-#stokes_range = [1.0e-3, 0.1]
+stokes_range = [1.0e-3, 0.1]
 
 # For continuum: SizeDistribution object
 # For discrete multifluid: all dust densities
-size_distribution = eps
+#size_distribution = eps
 #size_distribution = [0.48050615, 1.51949385]
 #size_distribution = [0.8403834887142569, 4.2359685932218305]
-#size_distribution = SizeDistribution(stokes_range)
+size_distribution = SizeDistribution(stokes_range)
 dust_density = 2.0  #np.sum(size_distribution)
 gas_density = 1.0
 

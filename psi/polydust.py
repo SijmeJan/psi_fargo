@@ -71,6 +71,11 @@ class Polydust():
                 xi2 = np.log(self.stokes_range[1])
 
                 tau = np.exp(np.linspace(xi1, xi2, self.N))
+
+                xi_edge = np.linspace(xi1, xi2, self.N + 1)
+                tau = xi_edge + 0.5*(xi_edge[1] - xi_edge[0])
+                tau = np.exp(tau)[0:-1]
+
         else:
             # Discrete dust sizes
             tau = self.stokes_range
@@ -97,13 +102,12 @@ class Polydust():
                 xi1 = np.log(self.stokes_range[0])
                 xi2 = np.log(self.stokes_range[1])
 
-                xi = np.linspace(xi1, xi2, self.N)
-                dxi = xi[1] - xi[0]
-                tau = np.exp(xi)
+                xi_edge = np.linspace(xi1, xi2, self.N + 1)
+                dxi = xi_edge[1] - xi_edge[0]
+                tau = np.exp(xi_edge + 0.5*dxi)[0:-1]
 
-
-                dens = 0.5*tau*(xi2 - xi1)*self.dust_density*self.sigma(tau)*dxi
-        else:
+                dens = self.dust_density*self.sigma(tau)*dxi*tau
+       else:
             # Discrete dust sizes
             tau = self.stokes_range
             # Normalize so total dust_density is correct

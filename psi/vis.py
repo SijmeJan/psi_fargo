@@ -142,36 +142,17 @@ def FourierPlot(direcs, Kx, Kz):
 
         #for i in range(1, int(len(ret[0,:])/4)):
         #    plt.plot(t, np.abs(ret[:,4*i]))
-        #plt.plot(t, np.abs(ret[:,1]))
+        plt.plot(t, np.abs(ret[:,1]))
         #plt.plot(t, np.real(ret[:,2]))
 
-        #plt.plot(t,  -0.01*0.5*6.32455136e-1*np.cos(0.7071065356633172*t))
-
-        #print(ret[0,:]/1.0e-5)
-        #plt.plot(t, np.real(ret[:,2]))
-        #plt.plot(t, np.real(ret[:,2] - ret[0,2]))
-        pf = PolyFluid(direc)
-        dlog = np.log(pf.stopping_times[1]/pf.stopping_times[0])
-        sigma = ret[-1,4::4]/ret[-1,1]/pf.stopping_times/dlog
-        #plt.plot(pf.stopping_times, np.real(sigma))
-        #plt.plot(pf.stopping_times, np.imag(sigma))
-
-        ux = ret[-1,5::4]/ret[-1,1]
-        plt.plot(pf.stopping_times, np.real(ux))
-        plt.plot(pf.stopping_times, np.imag(ux))
-
-        #plt.plot(pf.stopping_times, np.real(ret[0,5::4])) # vx as a function of size
-        #plt.plot(pf.stopping_times, np.real(ret[-1,5::4]))
-        #tau = pf.stopping_times
-        #plt.plot(pf.stopping_times, -2*tau/(1 + tau*tau))
 
     #plt.plot(t, 1.0e-7*np.exp(0.4190091323*t))
     #plt.plot(t, 1.0e-5*np.exp(0.3027262829*t))
-    #plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
+    plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
     #plt.plot(t, 1.0e-5*np.exp(0.42185357935887124*t))
     #plt.plot(t, 1.0e-6*np.exp(0.0154839*t))
 
-    plt.xscale('log')
+    plt.yscale('log')
     plt.show()
 
 def EigenVectorPlot(direcs, Kx, Kz):
@@ -230,7 +211,8 @@ def EigenVectorPlot(direcs, Kx, Kz):
     plt.show()
 
 direcs = [
-          #'/Users/sjp/Codes/psi_fargo/data/psi_linearB/',
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/',
+          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND8/',
           '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
 
