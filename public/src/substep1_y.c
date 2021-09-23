@@ -154,11 +154,8 @@ void SubStep1_y_cpu (real dt) {
 #ifdef SHEARINGBOX
 
         vm = 0.25*(vx_half[ll]+vx_half[llxp]+vx_half[llym]+vx_half[llxp-pitch]);
-#ifdef SHEAR_COORDINATES
-        vy_temp[l] += dt*2.0*OMEGAFRAME*vm;
-#else
+
         vy_temp[l] += dt*(2.0*OMEGAFRAME*vm + 2.0*SHEARPARAM*OMEGAFRAME*OMEGAFRAME*ymin(j));
-#endif
 
 #ifdef DRAGFORCE
         if (Fluidtype == GAS) {
