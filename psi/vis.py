@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import fsolve
+from scipy import linalg
 from os import listdir
 
 class Scalar:
@@ -137,31 +138,100 @@ def FourierPlot(direcs, Kx, Kz):
             if d[0] == 'NINTERM':
                 n = int(d[1])
 
-        t = dt*n*np.arange(len(ret[:,4]))
+        t = dt*n*np.arange(len(ret[:,0]))
 
         #for i in range(1, int(len(ret[0,:])/4)):
         #    plt.plot(t, np.abs(ret[:,4*i]))
-        plt.plot(t, np.abs(ret[:,1]))
-        #plt.plot(t, np.real(ret[:,2] - ret[0,2]))
+        #plt.plot(t, np.abs(ret[:,1]))
+        #plt.plot(t, np.real(ret[:,2]))
 
-        #plt.plot(pf.stopping_times, np.abs(ret[-1,5::4]))
+        #plt.plot(t,  -0.01*0.5*6.32455136e-1*np.cos(0.7071065356633172*t))
+
+        #print(ret[0,:]/1.0e-5)
+        #plt.plot(t, np.real(ret[:,2]))
+        #plt.plot(t, np.real(ret[:,2] - ret[0,2]))
+        pf = PolyFluid(direc)
+        dlog = np.log(pf.stopping_times[1]/pf.stopping_times[0])
+        sigma = ret[-1,4::4]/ret[-1,1]/pf.stopping_times/dlog
+        #plt.plot(pf.stopping_times, np.real(sigma))
+        #plt.plot(pf.stopping_times, np.imag(sigma))
+
+        ux = ret[-1,5::4]/ret[-1,1]
+        plt.plot(pf.stopping_times, np.real(ux))
+        plt.plot(pf.stopping_times, np.imag(ux))
 
         #plt.plot(pf.stopping_times, np.real(ret[0,5::4])) # vx as a function of size
         #plt.plot(pf.stopping_times, np.real(ret[-1,5::4]))
         #tau = pf.stopping_times
         #plt.plot(pf.stopping_times, -2*tau/(1 + tau*tau))
 
-    #plt.plot(t, 1.0e-5*np.exp(0.4190091323*t))
-    plt.plot(t, 1.0e-5*np.exp(0.3027262829*t))
+    #plt.plot(t, 1.0e-7*np.exp(0.4190091323*t))
+    #plt.plot(t, 1.0e-5*np.exp(0.3027262829*t))
     #plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
     #plt.plot(t, 1.0e-5*np.exp(0.42185357935887124*t))
+    #plt.plot(t, 1.0e-6*np.exp(0.0154839*t))
 
-    plt.yscale('log')
+    plt.xscale('log')
+    plt.show()
+
+def EigenVectorPlot(direcs, Kx, Kz):
+    for direc in direcs:
+        ret = Fourier(direc, [max_save(direc) - 1], Kx, Kz)
+
+        pf = PolyFluid(direc)
+        tau = pf.stopping_times
+
+        dlog = np.log(tau[1]/tau[0])
+        sigma = ret[-1,4::4]/ret[-1,1]/tau/dlog
+        ux = ret[-1,5::4]/ret[-1,1]
+        uy = ret[-1,6::4]/ret[-1,1]
+        uz = ret[-1,7::4]/ret[-1,1]
+
+        rhog = ret[-1,0]/ret[-1,1]
+        vgx = 1.0
+        vgy = ret[-1,2]/ret[-1,1]
+        vgz = ret[-1,3]/ret[-1,1]
+
+        plt.subplot(2,2,1)
+        plt.plot(tau, np.real(sigma))
+        plt.plot(tau, np.imag(sigma))
+        plt.plot([np.min(tau)], [np.real(rhog)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(rhog)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat\varsigma$')
+
+        plt.subplot(2,2,2)
+        plt.plot(tau, np.real(ux))
+        plt.plot(tau, np.imag(ux))
+        plt.plot([np.min(tau)], [np.real(vgx)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(vgx)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat u_x$')
+
+        plt.subplot(2,2,3)
+        plt.plot(tau, np.real(uy))
+        plt.plot(tau, np.imag(uy))
+        plt.plot([np.min(tau)], [np.real(vgy)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(vgy)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat u_y$')
+
+        plt.subplot(2,2,4)
+        plt.plot(tau, np.real(uz))
+        plt.plot(tau, np.imag(uz))
+        plt.plot([np.min(tau)], [np.real(vgz)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(vgz)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat u_z$')
+
+    plt.tight_layout()
+
+    plt.xscale('log')
     plt.show()
 
 direcs = [
+          #'/Users/sjp/Codes/psi_fargo/data/psi_linearB/',
           '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
-          #'/Users/sjp/Codes/psi_fargo/data/psi_linearA/'
           ]
 
 #direcs = [
@@ -174,15 +244,47 @@ direcs = [
 #          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
 #         ]
 
-FourierPlot(direcs, 60, 60)
+#FourierPlot(direcs, 60, 60)
+EigenVectorPlot(direcs, 60, 60)
+exit()
 
-#for direc in direcs:
-#    pf = PolyFluid(direc)
+#exit()
 
-#    ret = Fourier(direc, range(0, max_save(direc)), 60, 60)
+pf = PolyFluid(direcs[0])
+pf.read(0)
+
+for direc in direcs:
+    pf = PolyFluid(direc)
+
+    data = np.genfromtxt(direc + '/variables.par',dtype='str')
+    dt = 0.0
+    n = 1
+    for d in data:
+        if d[0] == 'DT':
+            dt = float(d[1])
+        if d[0] == 'NINTERM':
+            n = int(d[1])
+
+    t = dt*n*np.arange(max_save(direc))
+
+    gasdens = []
+    dustdens = []
+    for n in range(0, max_save(direc)):
+        pf.read(n)
+
+        gasdens.append(pf.Fluids[0].dens[0, 0, 0] - 1.0)
+        dustdens.append(pf.Fluids[1].dens[0, 0, 0] - 3.0)
+
+    gasdens = np.asarray(gasdens/np.max(gasdens))
+    dustdens = np.asarray(dustdens/np.max(dustdens))
+
+    plt.plot(t, gasdens)
+    plt.plot(t, dustdens)
+
+plt.show()
+    #ret = Fourier(direc, range(0, max_save(direc)), 60, 60)
 
 #    plt.plot(pf.stopping_times, np.real(ret[-1,4::4]))
-
 
 exit()
 

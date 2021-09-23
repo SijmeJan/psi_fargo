@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import linalg
 
 class Perturbation():
     def __init__(self, n_dust, amplitude, Kx, Kz):
@@ -37,6 +38,31 @@ class Perturbation():
             ret.append(self.string_single(self.eig[4*i+3],stagger='z'))
 
         return ret
+
+class GasEpicycle(Perturbation):
+    def __init__(self, Kx, Kz, sound_speed, amplitude):
+        self.c = sound_speed
+        Perturbation.__init__(self, 0, amplitude, Kx, Kz)
+
+    def set_eigenvector(self):
+        A = [[0, self.Kx, 0, self.Kz],
+             [self.c*self.c*self.Kx, 0, 2j, 0],
+             [0, -0.5j, 0, 0],
+             [self.Kz*self.c*self.c, 0, 0, 0]]
+
+        # Select eigenvalue with real part closest to unity
+        ev = linalg.eigvals(np.asarray(A))
+        n = np.abs(ev.real - 1.0).argmin()
+
+        val, vec = linalg.eig(np.asarray(A))
+        print('Eigenvector for eigenvalue {}: {}'.format(val[n], vec[:,n]))
+
+        v = vec[:, n]
+
+        # Convert to FARGO standard where y=x and x=y....
+        v[2], v[1] = v[1], v[2]
+
+        self.eig = v
 
 class LinearA(Perturbation):
     def __init__(self, amplitude):

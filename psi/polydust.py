@@ -25,7 +25,7 @@ class Polydust():
         self.sigma = None
         # Continuous size distribution
         if isinstance(size_distribution, SizeDistribution):
-            print('Continuous size distribution')
+            print('Continuous size distribution with {} nodes'.format(self.N))
             if self.gauss_legendre is True:
                 print('Using Gauss-Legendre quadrature')
             else:
@@ -34,14 +34,14 @@ class Polydust():
         else:
             if size_distribution is None:
                 # MRN, normalized to unity
-                print('Continuous MRN size distribution')
+                print('Continuous MRN size distribution with {} nodes'.format(self.N))
                 if self.gauss_legendre is True:
                     print('Using Gauss-Legendre quadrature')
                 else:
                     print('Using equidistant nodes')
                 size_distribution = SizeDistribution(stokes_range)
             else:
-                print('Discrete dust sizes')
+                print('Discrete dust sizes with {} dust species'.format(self.N))
                 self.N = len(stokes_range)
                 # Discrete sizes passed, size should be the same as stokes_range
                 self.sigma = np.asarray(size_distribution)
@@ -107,7 +107,7 @@ class Polydust():
             # Discrete dust sizes
             tau = self.stokes_range
             # Normalize so total dust_density is correct
-            dens = self.dust_density*self.sigma
+            dens = self.sigma*self.dust_density
 
         print('Total dust density: ', np.sum(dens))
 
@@ -128,7 +128,6 @@ class Polydust():
             v.append(2*J1/denom)      # Gas vx
             v.append(-(1 + J0)/denom) # Gas vy
             v.append(0.0)             # Gas vz
-
 
             for t in tau:
                 v.append(2*(J1 - t*(1 + J0))/((1 + t*t)*denom))
