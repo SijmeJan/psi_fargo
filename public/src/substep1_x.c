@@ -122,16 +122,6 @@ void SubStep1_x_cpu (real dt) {
         vx_temp[ll] -= (pot[ll]-pot[llxm])*dt/zone_size_x(j,k);
 #endif
 
-#ifdef SHEARINGBOX
-
-#ifdef SHEAR_COORDINATES
-        vx_temp[l] += dt*(SHEARPARAM - 2.0)*OMEGAFRAME*0.25*(vy_half[l]+vy_half[lxm]+vy_half[lyp]+vy_half[lxm+pitch]);
-#else
-        vx_temp[l] -= dt*2.0*OMEGAFRAME*0.25*(vy_half[l]+vy_half[lxm]+vy_half[lyp]+vy_half[lxm+pitch]);
-#endif
-
-#endif //ENDIF SHEARINGBOX
-
 #ifdef MHD
         if(fluidtype == GAS) {
 
