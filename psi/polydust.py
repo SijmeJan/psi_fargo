@@ -48,10 +48,13 @@ class Polydust():
                 # Normalize to total dust density unity
                 self.sigma = self.sigma/np.sum(self.sigma)
 
+    def nodes_and_weights(self):
+        return roots_legendre(self.N)
+
     def dust_nodes(self):
         if callable(self.sigma):
             if self.gauss_legendre is True:
-                xi, weights = roots_legendre(self.N)
+                xi, weights = self.nodes_and_weights()
 
                 xi = np.asarray(xi)
                 weights = np.asarray(weights)
@@ -107,7 +110,7 @@ class Polydust():
                 tau = np.exp(xi_edge + 0.5*dxi)[0:-1]
 
                 dens = self.dust_density*self.sigma(tau)*dxi*tau
-       else:
+        else:
             # Discrete dust sizes
             tau = self.stokes_range
             # Normalize so total dust_density is correct
@@ -159,6 +162,7 @@ class Polydust():
     def initial_conditions(self):
         tau, dens = self.dust_densities()
 
+        print(dens)
         v = self.equilibrium_velocities(tau)
 
         return tau, dens, v

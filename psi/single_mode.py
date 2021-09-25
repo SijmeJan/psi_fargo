@@ -1,6 +1,26 @@
 import numpy as np
 from scipy import linalg
 
+from psitools.psi_mode import PSIMode
+
+def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
+    np.random.seed(0)
+    pm = PSIMode(dust_to_gas_ratio=dust_to_gas_ratio,
+             stokes_range=stokes_range,
+             real_range=[-2, 2],
+             imag_range=[1.0e-8, 1])
+
+    roots = pm.calculate(wave_number_x=wave_number_x,
+                         wave_number_z=wave_number_x)
+
+    rhog, vg, sigma, u = \
+      pm.eigenvector(roots[0], wave_number_x=wave_number_x,
+                     wave_number_z=wave_number_z)
+
+    print('Calculated PSI eigenvalue: ', roots[0])
+
+    return rhog, vg, sigma, u
+
 class Perturbation():
     def __init__(self, n_dust, amplitude, Kx, Kz):
         self.Kx = Kx
@@ -138,3 +158,32 @@ class RandomFixedK(Perturbation):
 
         # Normalized to first dust density perturbation
         self.eig[4] = 1.0
+
+class PSI_pert(Perturbation):
+    def __init__(self, poly_dust, amplitude, Kx, Kz):
+        self.pd = poly_dust
+
+        Perturbation.__init__(self, self.pd.N, amplitude, Kx, Kz)
+
+    def set_eigenvector(self):
+        # Dust to gas ratio
+        mu = self.pd.dust_density/self.pd.gas_density
+
+        # PSI eigenvector
+        rhog, vg, sigma, u = \
+          PSI_eigen(mu, self.pd.stokes_range, self.Kx, self.Kz)
+
+        tau = self.pd.dust_nodes()
+
+        sigma_norm = lambda x: sigma(x)
+        if self.pd.gauss_legendre is True:
+            pass
+        else:
+            xi = np.log(tau)
+            dxi = xi[1] - xi[0]
+            sigma_norm = lambda x: x*sigma(x)*dxi
+
+        # NOTE: convert to FARGO standard where x=y...
+        self.eig = [rhog, vg[1], vg[0], vg[2]]
+        for x in tau:
+            self.eig.extend([3*sigma_norm(x), u[1](x), u[0](x), u[2](x)])

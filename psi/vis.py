@@ -3,6 +3,9 @@ import numpy as np
 from scipy.optimize import fsolve
 from scipy import linalg
 from os import listdir
+from scipy.special import roots_legendre
+
+from single_mode import PSI_eigen
 
 class Scalar:
     def __init__(self, filename):
@@ -115,13 +118,11 @@ def Fourier(direc, time_stamps, Kx, Kz):
     for t, n in enumerate(time_stamps):
         pf.read(n)
 
-        #print(t, pf.Fluids[0].velx)
-
         for indx, fluid in enumerate(pf.Fluids):
-            ret[t,4*indx+0] = np.mean(fluid.dens[:,0,:]*expmed)
-            ret[t,4*indx+1] = np.mean(fluid.velx[:,0,:]*expminx)
-            ret[t,4*indx+2] = np.mean(fluid.vely[:,0,:]*expmed)
-            ret[t,4*indx+3] = np.mean(fluid.velz[:,0,:]*expminz)
+            ret[t,4*indx+0] = 2*np.mean(fluid.dens[:,0,:]*expmed)
+            ret[t,4*indx+1] = 2*np.mean(fluid.velx[:,0,:]*expminx)
+            ret[t,4*indx+2] = 2*np.mean(fluid.vely[:,0,:]*expmed)
+            ret[t,4*indx+3] = 2*np.mean(fluid.velz[:,0,:]*expminz)
 
     return ret
 
@@ -156,54 +157,77 @@ def FourierPlot(direcs, Kx, Kz):
     plt.show()
 
 def EigenVectorPlot(direcs, Kx, Kz):
+    rhog, vg, sigma, u = PSI_eigen(dust_to_gas_ratio=2,
+                                   stokes_range=[1.0e-3, 0.1],
+                                   wave_number_x=60,
+                                   wave_number_z=60)
+
+    tau = np.logspace(-3,-1,1000)
+
+    plt.plot(tau, np.real(3*sigma(tau)))
+    plt.plot(tau, np.imag(3*sigma(tau)))
+    #plt.plot(tau, np.real(u[0](tau)))
+    #plt.plot(tau, np.imag(u[0](tau)))
+
     for direc in direcs:
         ret = Fourier(direc, [max_save(direc) - 1], Kx, Kz)
+
+        normfac = 1/ret[-1,1]
+        if Kx == 0 and Kz == 0:
+            normfac = 1
 
         pf = PolyFluid(direc)
         tau = pf.stopping_times
 
+        # Equidistant
         dlog = np.log(tau[1]/tau[0])
-        sigma = ret[-1,4::4]/ret[-1,1]/tau/dlog
-        ux = ret[-1,5::4]/ret[-1,1]
-        uy = ret[-1,6::4]/ret[-1,1]
-        uz = ret[-1,7::4]/ret[-1,1]
+        sigma = ret[-1,4::4]*normfac/tau/dlog
 
-        rhog = ret[-1,0]/ret[-1,1]
-        vgx = 1.0
-        vgy = ret[-1,2]/ret[-1,1]
-        vgz = ret[-1,3]/ret[-1,1]
+        # Gauss-Legendre
+        #xi, w = roots_legendre(len(tau))
+        #sigma = 2*ret[-1,4::4]*normfac/tau/w/np.log(0.1/0.001)
 
-        plt.subplot(2,2,1)
+
+        ux = ret[-1,5::4]*normfac
+        uy = ret[-1,6::4]*normfac
+        uz = ret[-1,7::4]*normfac
+
+        rhog = ret[-1,0]*normfac
+        vgx = ret[-1,1]*normfac
+        vgy = ret[-1,2]*normfac
+        vgz = ret[-1,3]*normfac
+
+        #plt.subplot(2,2,1)
         plt.plot(tau, np.real(sigma))
         plt.plot(tau, np.imag(sigma))
-        plt.plot([np.min(tau)], [np.real(rhog)], marker='o')
-        plt.plot([np.min(tau)], [np.imag(rhog)], marker='o')
+        #plt.plot([np.min(tau)], [np.real(rhog)], marker='o')
+        #plt.plot([np.min(tau)], [np.imag(rhog)], marker='o')
         plt.xscale('log')
         plt.ylabel(r'$\hat\varsigma$')
 
-        plt.subplot(2,2,2)
-        plt.plot(tau, np.real(ux))
-        plt.plot(tau, np.imag(ux))
-        plt.plot([np.min(tau)], [np.real(vgx)], marker='o')
-        plt.plot([np.min(tau)], [np.imag(vgx)], marker='o')
-        plt.xscale('log')
-        plt.ylabel(r'$\hat u_x$')
+        #plt.subplot(2,2,2)
+        #plt.plot(tau, np.real(ux))
+        #plt.plot(tau, np.imag(ux))
+        #plt.plot([np.min(tau)], [np.real(vgx)], marker='o')
+        #plt.plot([np.min(tau)], [np.imag(vgx)], marker='o')
+        #plt.xscale('log')
+        #plt.ylabel(r'$\hat u_x$')
 
-        plt.subplot(2,2,3)
-        plt.plot(tau, np.real(uy))
-        plt.plot(tau, np.imag(uy))
-        plt.plot([np.min(tau)], [np.real(vgy)], marker='o')
-        plt.plot([np.min(tau)], [np.imag(vgy)], marker='o')
-        plt.xscale('log')
-        plt.ylabel(r'$\hat u_y$')
+        #plt.subplot(2,2,3)
+        #plt.plot(tau, np.real(uy))
+        #plt.plot(tau, np.imag(uy))
+        #plt.plot([np.min(tau)], [np.real(vgy)], marker='o')
+        #plt.plot([np.min(tau)], [np.imag(vgy)], marker='o')
+        #plt.xscale('log')
+        #plt.ylabel(r'$\hat u_y$')
 
-        plt.subplot(2,2,4)
-        plt.plot(tau, np.real(uz))
-        plt.plot(tau, np.imag(uz))
-        plt.plot([np.min(tau)], [np.real(vgz)], marker='o')
-        plt.plot([np.min(tau)], [np.imag(vgz)], marker='o')
-        plt.xscale('log')
-        plt.ylabel(r'$\hat u_z$')
+        #plt.subplot(2,2,4)
+        #plt.plot(tau, np.real(uz))
+        #plt.plot(tau, np.imag(uz))
+        #plt.plot([np.min(tau)], [np.real(vgz)], marker='o')
+        #plt.plot([np.min(tau)], [np.imag(vgz)], marker='o')
+        #plt.xscale('log')
+        #plt.ylabel(r'$\hat u_z$')
 
     plt.tight_layout()
 
@@ -211,8 +235,9 @@ def EigenVectorPlot(direcs, Kx, Kz):
     plt.show()
 
 direcs = [
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/',
-          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND8/',
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND64/'
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/'
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND8_gauss/'
           '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
 
@@ -226,8 +251,8 @@ direcs = [
 #          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
 #         ]
 
-#FourierPlot(direcs, 60, 60)
-EigenVectorPlot(direcs, 60, 60)
+FourierPlot(direcs, 60, 60)
+#EigenVectorPlot(direcs, 60, 60)
 exit()
 
 #exit()

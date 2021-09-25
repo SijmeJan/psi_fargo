@@ -97,7 +97,8 @@ Kx = 60
 Kz = 60
 #mode = single_mode.GasEpicycle(30, 30, 20, 0.01)
 #mode = single_mode.Linear3(1.0e-5)
-mode = single_mode.RandomFixedK(n_dust, 1.0e-5, Kx, Kz)
+#mode = single_mode.RandomFixedK(n_dust, 1.0e-5, Kx, Kz)
+mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
 
 Ly = 2*np.pi/Kx            # 'radial' box size
 Lz = 2*np.pi/Kz            # vertical box size
