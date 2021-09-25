@@ -174,10 +174,14 @@ class PSI_pert(Perturbation):
           PSI_eigen(mu, self.pd.stokes_range, self.Kx, self.Kz)
 
         tau = self.pd.dust_nodes()
+        weights = np.empty(len(tau)).fill(1)
 
         sigma_norm = lambda x: sigma(x)
         if self.pd.gauss_legendre is True:
-            pass
+            #print('GAUSS NOT IMPLEMENTED!!!!')
+            fac = 0.5*np.log(self.pd.stokes_range[1]/self.pd.stokes_range[0])
+            sigma_norm = lambda x: fac*x*sigma(x)
+            tau, weights = self.pd.nodes_and_weights()
         else:
             xi = np.log(tau)
             dxi = xi[1] - xi[0]
@@ -186,4 +190,4 @@ class PSI_pert(Perturbation):
         # NOTE: convert to FARGO standard where x=y...
         self.eig = [rhog, vg[1], vg[0], vg[2]]
         for x in tau:
-            self.eig.extend([3*sigma_norm(x), u[1](x), u[0](x), u[2](x)])
+            self.eig.extend([sigma_norm(x), u[1](x), u[0](x), u[2](x)])

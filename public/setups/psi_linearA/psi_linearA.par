@@ -11,14 +11,14 @@ ShearParam         1.5      Shear rate
 
 ### Dust parameters
 
-Invstokes1        749.8942093324551   Inverse of the Stokes number for dust1
-Invstokes2        421.69650342858216   Inverse of the Stokes number for dust2
-Invstokes3        237.1373705661652   Inverse of the Stokes number for dust3
-Invstokes4        133.3521432163323   Inverse of the Stokes number for dust4
-Invstokes5        74.98942093324557   Inverse of the Stokes number for dust5
-Invstokes6        42.16965034285818   Inverse of the Stokes number for dust6
-Invstokes7        23.713737056616537   Inverse of the Stokes number for dust7
-Invstokes8        13.335214321633233   Inverse of the Stokes number for dust8
+Invstokes1        912.6197361187174   Inverse of the Stokes number for dust1
+Invstokes2        626.1328324288195   Inverse of the Stokes number for dust2
+Invstokes3        335.3763315087628   Inverse of the Stokes number for dust3
+Invstokes4        152.5578791325031   Inverse of the Stokes number for dust4
+Invstokes5        65.54889237359265   Inverse of the Stokes number for dust5
+Invstokes6        29.81725023651145   Inverse of the Stokes number for dust6
+Invstokes7        15.971051959069447   Inverse of the Stokes number for dust7
+Invstokes8        10.957466296454447   Inverse of the Stokes number for dust8
 
 ### Mesh parameters
 

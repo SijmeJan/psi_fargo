@@ -90,15 +90,15 @@ dust_density = 2.0  #np.sum(size_distribution)
 gas_density = 1.0
 
 pd = Polydust(n_dust, stokes_range, dust_density,
-              gas_density, size_distribution, gauss_legendre=False)
+              gas_density, size_distribution, gauss_legendre=True)
 
 # Add single mode perturbation
 Kx = 60
 Kz = 60
 #mode = single_mode.GasEpicycle(30, 30, 20, 0.01)
 #mode = single_mode.Linear3(1.0e-5)
-#mode = single_mode.RandomFixedK(n_dust, 1.0e-5, Kx, Kz)
-mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
+mode = single_mode.RandomFixedK(n_dust, 1.0e-5, Kx, Kz)
+#mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
 
 Ly = 2*np.pi/Kx            # 'radial' box size
 Lz = 2*np.pi/Kz            # vertical box size

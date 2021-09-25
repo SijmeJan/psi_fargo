@@ -162,7 +162,6 @@ class Polydust():
     def initial_conditions(self):
         tau, dens = self.dust_densities()
 
-        print(dens)
         v = self.equilibrium_velocities(tau)
 
         return tau, dens, v

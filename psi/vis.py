@@ -180,12 +180,12 @@ def EigenVectorPlot(direcs, Kx, Kz):
         tau = pf.stopping_times
 
         # Equidistant
-        dlog = np.log(tau[1]/tau[0])
-        sigma = ret[-1,4::4]*normfac/tau/dlog
+        #dlog = np.log(tau[1]/tau[0])
+        #sigma = ret[-1,4::4]*normfac/tau/dlog
 
         # Gauss-Legendre
-        #xi, w = roots_legendre(len(tau))
-        #sigma = 2*ret[-1,4::4]*normfac/tau/w/np.log(0.1/0.001)
+        xi, w = roots_legendre(len(tau))
+        sigma = 2*ret[-1,4::4]*normfac/tau/w/np.log(0.1/0.001)
 
 
         ux = ret[-1,5::4]*normfac
@@ -251,8 +251,8 @@ direcs = [
 #          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
 #         ]
 
-FourierPlot(direcs, 60, 60)
-#EigenVectorPlot(direcs, 60, 60)
+#FourierPlot(direcs, 60, 60)
+EigenVectorPlot(direcs, 60, 60)
 exit()
 
 #exit()
