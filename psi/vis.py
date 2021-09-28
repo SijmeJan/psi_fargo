@@ -20,7 +20,6 @@ class Coordinates:
         x = np.loadtxt(direc + 'domain_y.dat')[3:-4]
         z = np.loadtxt(direc + 'domain_z.dat')[3:-4]
 
-        #dx = x[1] - x[0]
         dx = 0.0
         if len(x) > 1:
             dx = x[1] - x[0]
@@ -29,9 +28,11 @@ class Coordinates:
             dz = z[1] - z[0]
 
         # Coordinates of cell *centres*
-        #self.x = x + 0.5*dx
         self.x = x + 0.5*dx
         self.z = z + 0.5*dz
+
+        self.dx = dx
+        self.dz = dz
 
 class Fluid:
     def __init__(self, direc, number=0):
@@ -84,6 +85,18 @@ class PolyFluid:
         for fluid in self.Fluids:
             fluid.read(number)
 
+def time_stamps(direc, length):
+    data = np.genfromtxt(direc + '/variables.par',dtype='str')
+    dt = 0.0
+    n = 1
+    for d in data:
+        if d[0] == 'DT':
+            dt = float(d[1])
+        if d[0] == 'NINTERM':
+            n = int(d[1])
+
+    return dt*n*np.arange(length)
+
 def max_save(direc):
     n = 0
     for file in listdir(direc):
@@ -95,17 +108,10 @@ def max_save(direc):
 def Fourier(direc, time_stamps, Kx, Kz):
     coord = Coordinates(direc)
 
-    dx = 0.0
-    if len(coord.x) > 1:
-        dx = coord.x[1] - coord.x[0]
-    dz = 0.0
-    if len(coord.z) > 1:
-        dz = coord.z[1] - coord.z[0]
-
     x, z = np.meshgrid(coord.x, coord.z, sparse=False, indexing='xy')
 
-    xmin = x - 0.5*dx
-    zmin = z - 0.5*dz
+    xmin = x - 0.5*coord.dx
+    zmin = z - 0.5*coord.dz
 
     expmed = np.exp(-1j*(Kx*x + Kz*z))
     expminx = np.exp(-1j*(Kx*xmin + Kz*z))
@@ -119,27 +125,20 @@ def Fourier(direc, time_stamps, Kx, Kz):
         pf.read(n)
 
         for indx, fluid in enumerate(pf.Fluids):
-            ret[t,4*indx+0] = 2*np.mean(fluid.dens[:,0,:]*expmed)
-            ret[t,4*indx+1] = 2*np.mean(fluid.velx[:,0,:]*expminx)
-            ret[t,4*indx+2] = 2*np.mean(fluid.vely[:,0,:]*expmed)
-            ret[t,4*indx+3] = 2*np.mean(fluid.velz[:,0,:]*expminz)
+            ret[t,4*indx+0] = np.mean(fluid.dens[:,0,:]*expmed)
+            ret[t,4*indx+1] = np.mean(fluid.velx[:,0,:]*expminx)
+            ret[t,4*indx+2] = np.mean(fluid.vely[:,0,:]*expmed)
+            ret[t,4*indx+3] = np.mean(fluid.velz[:,0,:]*expminz)
 
-    return ret
+    if (Kx == 0 and Kz == 0):
+        return ret
+    return 2*ret
 
 def FourierPlot(direcs, Kx, Kz):
     for direc in direcs:
         ret = Fourier(direc, range(0, max_save(direc)), Kx, Kz)
 
-        data = np.genfromtxt(direc + '/variables.par',dtype='str')
-        dt = 0.0
-        n = 1
-        for d in data:
-            if d[0] == 'DT':
-                dt = float(d[1])
-            if d[0] == 'NINTERM':
-                n = int(d[1])
-
-        t = dt*n*np.arange(len(ret[:,0]))
+        t = time_stamps(direc, len(ret[:,0]))
 
         #for i in range(1, int(len(ret[0,:])/4)):
         #    plt.plot(t, np.abs(ret[:,4*i]))
@@ -149,25 +148,40 @@ def FourierPlot(direcs, Kx, Kz):
 
     #plt.plot(t, 1.0e-7*np.exp(0.4190091323*t))
     #plt.plot(t, 1.0e-5*np.exp(0.3027262829*t))
-    plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
+    #plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
+    plt.plot(t, 1.0e-5*np.exp(0.17*t))
     #plt.plot(t, 1.0e-5*np.exp(0.42185357935887124*t))
     #plt.plot(t, 1.0e-6*np.exp(0.0154839*t))
 
     plt.yscale('log')
     plt.show()
 
-def EigenVectorPlot(direcs, Kx, Kz):
-    rhog, vg, sigma, u = PSI_eigen(dust_to_gas_ratio=2,
-                                   stokes_range=[1.0e-3, 0.1],
-                                   wave_number_x=60,
-                                   wave_number_z=60)
+def EigenVectorPlot(direcs, Kx, Kz,
+                    dust_to_gas_ratio = 2.0,
+                    stokes_range=[0.001,0.1]):
+    rhog, vg, sigma, u = PSI_eigen(dust_to_gas_ratio=dust_to_gas_ratio,
+                                   stokes_range=stokes_range,
+                                   wave_number_x=Kx,
+                                   wave_number_z=Kz)
 
-    tau = np.logspace(-3,-1,1000)
+    tau = np.logspace(np.log10(stokes_range[0]),
+                      np.log10(stokes_range[1]), 1000)
 
+    plt.subplot(2,2,1)
     plt.plot(tau, np.real(3*sigma(tau)))
     plt.plot(tau, np.imag(3*sigma(tau)))
+
+    #plt.subplot(2,2,2)
     #plt.plot(tau, np.real(u[0](tau)))
     #plt.plot(tau, np.imag(u[0](tau)))
+
+    plt.subplot(2,2,3)
+    plt.plot(tau, np.real(u[1](tau)))
+    plt.plot(tau, np.imag(u[1](tau)))
+
+    plt.subplot(2,2,4)
+    plt.plot(tau, np.real(u[2](tau)))
+    plt.plot(tau, np.imag(u[2](tau)))
 
     for direc in direcs:
         ret = Fourier(direc, [max_save(direc) - 1], Kx, Kz)
@@ -179,13 +193,17 @@ def EigenVectorPlot(direcs, Kx, Kz):
         pf = PolyFluid(direc)
         tau = pf.stopping_times
 
-        # Equidistant
-        #dlog = np.log(tau[1]/tau[0])
-        #sigma = ret[-1,4::4]*normfac/tau/dlog
+        if (np.abs(np.log(tau[1]*tau[1]/tau[0]/tau[2])) < 1.0e-10):
+            print(direc, ': equidistant nodes')
 
-        # Gauss-Legendre
-        xi, w = roots_legendre(len(tau))
-        sigma = 2*ret[-1,4::4]*normfac/tau/w/np.log(0.1/0.001)
+            # Equidistant
+            dlog = np.log(tau[1]/tau[0])
+            sigma = ret[-1,4::4]*normfac/tau/dlog
+        else:
+            print(direc, ': Gauss-Legendre nodes')
+            # Gauss-Legendre
+            xi, w = roots_legendre(len(tau))
+            sigma = 2*ret[-1,4::4]*normfac/tau/w/np.log(stokes_range[1]/stokes_range[0])
 
 
         ux = ret[-1,5::4]*normfac
@@ -197,46 +215,102 @@ def EigenVectorPlot(direcs, Kx, Kz):
         vgy = ret[-1,2]*normfac
         vgz = ret[-1,3]*normfac
 
-        #plt.subplot(2,2,1)
+        plt.subplot(2,2,1)
         plt.plot(tau, np.real(sigma))
         plt.plot(tau, np.imag(sigma))
-        #plt.plot([np.min(tau)], [np.real(rhog)], marker='o')
-        #plt.plot([np.min(tau)], [np.imag(rhog)], marker='o')
+        plt.plot([np.min(tau)], [np.real(rhog)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(rhog)], marker='o')
         plt.xscale('log')
         plt.ylabel(r'$\hat\varsigma$')
 
-        #plt.subplot(2,2,2)
-        #plt.plot(tau, np.real(ux))
-        #plt.plot(tau, np.imag(ux))
-        #plt.plot([np.min(tau)], [np.real(vgx)], marker='o')
-        #plt.plot([np.min(tau)], [np.imag(vgx)], marker='o')
-        #plt.xscale('log')
-        #plt.ylabel(r'$\hat u_x$')
+        plt.subplot(2,2,2)
+        plt.plot(tau, np.real(ux))
+        plt.plot(tau, np.imag(ux))
+        plt.plot([np.min(tau)], [np.real(vgx)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(vgx)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat u_x$')
+        print('Maximum norm ux error:', np.max(np.abs(ux - u[0](tau))))
 
-        #plt.subplot(2,2,3)
-        #plt.plot(tau, np.real(uy))
-        #plt.plot(tau, np.imag(uy))
-        #plt.plot([np.min(tau)], [np.real(vgy)], marker='o')
-        #plt.plot([np.min(tau)], [np.imag(vgy)], marker='o')
-        #plt.xscale('log')
-        #plt.ylabel(r'$\hat u_y$')
+        plt.subplot(2,2,3)
+        plt.plot(tau, np.real(uy))
+        plt.plot(tau, np.imag(uy))
+        plt.plot([np.min(tau)], [np.real(vgy)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(vgy)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat u_y$')
 
-        #plt.subplot(2,2,4)
-        #plt.plot(tau, np.real(uz))
-        #plt.plot(tau, np.imag(uz))
-        #plt.plot([np.min(tau)], [np.real(vgz)], marker='o')
-        #plt.plot([np.min(tau)], [np.imag(vgz)], marker='o')
-        #plt.xscale('log')
-        #plt.ylabel(r'$\hat u_z$')
+        plt.subplot(2,2,4)
+        plt.plot(tau, np.real(uz))
+        plt.plot(tau, np.imag(uz))
+        plt.plot([np.min(tau)], [np.real(vgz)], marker='o')
+        plt.plot([np.min(tau)], [np.imag(vgz)], marker='o')
+        plt.xscale('log')
+        plt.ylabel(r'$\hat u_z$')
 
     plt.tight_layout()
 
     plt.xscale('log')
     plt.show()
 
+def ErrorPlot(direcs, Kx, Kz,
+              dust_to_gas_ratio = 2.0,
+              stokes_range=[0.001,0.1]):
+    rhog, vg, sigma, u = \
+          PSI_eigen(dust_to_gas_ratio=dust_to_gas_ratio,
+                    stokes_range=stokes_range,
+                    wave_number_x=Kx,
+                    wave_number_z=Kz)
+    w = PSI_eigen.eigenvalue
+
+    for direc in direcs:
+        coord = Coordinates(direc)
+        x, z = np.meshgrid(coord.x, coord.z, sparse=False, indexing='xy')
+        xmin = x - 0.5*coord.dx
+        zmin = z - 0.5*coord.dz
+
+        t = time_stamps(direc, max_save(direc))
+
+        pf = PolyFluid(direc)
+        pf.read(0)
+
+        # Initial background
+        state0 = Fourier(direc, [0], 0, 0)[0]
+        # Initial perturbation
+        state1 = Fourier(direc, [0], Kx, Kz)[0]
+
+        ret = np.empty((len(t), 4*(pf.n_dust+1)), dtype=float)
+
+        for n in range(0, max_save(direc)):
+            pf.read(n)
+
+            expmed = np.exp(1j*(Kx*x + Kz*z - w*t[n]))
+            expminx = np.exp(1j*(Kx*xmin + Kz*z - w*t[n]))
+            expminz = np.exp(1j*(Kx*x + Kz*zmin - w*t[n]))
+
+            for i, fluid in enumerate(pf.Fluids):
+                dens_ana = state0[4*i] + np.real(state1[4*i]*expmed)
+                velx_ana = state0[4*i+1] + np.real(state1[4*i+1]*expminx)
+                vely_ana = state0[4*i+2] + np.real(state1[4*i+2]*expmed) - 1.5*x
+                velz_ana = state0[4*i+3] + np.real(state1[4*i+3]*expminz)
+
+                ret[n, 4*i] = np.max(np.abs(fluid.dens[:,0,:] - dens_ana))
+                ret[n, 4*i+1] = np.max(np.abs(fluid.velx[:,0,:] - velx_ana))
+                ret[n, 4*i+2] = np.max(np.abs(fluid.vely[:,0,:] - vely_ana))
+                ret[n, 4*i+3] = np.max(np.abs(fluid.velz[:,0,:] - velz_ana))
+
+        plt.plot(t[1:], ret[1:, 1])
+        plt.plot(t[1:], ret[1:, 2])
+        plt.plot(t[1:], ret[1:, 3])
+
+        print(np.max([ret[:,1], ret[:,2]]))
+
+    plt.yscale('log')
+    plt.show()
+
 direcs = [
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND64/'
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/'
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32_gauss/',
+          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND8_gauss/'
           '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
@@ -251,8 +325,13 @@ direcs = [
 #          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
 #         ]
 
-#FourierPlot(direcs, 60, 60)
-EigenVectorPlot(direcs, 60, 60)
+#FourierPlot(direcs, 30, 30)
+#EigenVectorPlot(direcs, 30, 30,
+#                dust_to_gas_ratio = 3,
+#                stokes_range=[0.01,0.1])
+ErrorPlot(direcs, 30, 30,
+          dust_to_gas_ratio = 3,
+          stokes_range=[0.01,0.1])
 exit()
 
 #exit()

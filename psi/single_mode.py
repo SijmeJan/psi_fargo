@@ -6,9 +6,9 @@ from psitools.psi_mode import PSIMode
 def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
     np.random.seed(0)
     pm = PSIMode(dust_to_gas_ratio=dust_to_gas_ratio,
-             stokes_range=stokes_range,
-             real_range=[-2, 2],
-             imag_range=[1.0e-8, 1])
+                 stokes_range=stokes_range,
+                 real_range=[-2, 2],
+                 imag_range=[1.0e-8, 1])
 
     roots = pm.calculate(wave_number_x=wave_number_x,
                          wave_number_z=wave_number_x)
@@ -17,6 +17,7 @@ def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
       pm.eigenvector(roots[0], wave_number_x=wave_number_x,
                      wave_number_z=wave_number_z)
 
+    PSI_eigen.eigenvalue = roots[0]
     print('Calculated PSI eigenvalue: ', roots[0])
 
     return rhog, vg, sigma, u
@@ -174,20 +175,24 @@ class PSI_pert(Perturbation):
           PSI_eigen(mu, self.pd.stokes_range, self.Kx, self.Kz)
 
         tau = self.pd.dust_nodes()
-        weights = np.empty(len(tau)).fill(1)
+
+        weights = np.empty(len(tau))
+        weights.fill(1)
 
         sigma_norm = lambda x: sigma(x)
         if self.pd.gauss_legendre is True:
             #print('GAUSS NOT IMPLEMENTED!!!!')
             fac = 0.5*np.log(self.pd.stokes_range[1]/self.pd.stokes_range[0])
             sigma_norm = lambda x: fac*x*sigma(x)
-            tau, weights = self.pd.nodes_and_weights()
+            xi, weights = self.pd.nodes_and_weights()
         else:
             xi = np.log(tau)
             dxi = xi[1] - xi[0]
             sigma_norm = lambda x: x*sigma(x)*dxi
 
         # NOTE: convert to FARGO standard where x=y...
+        # NOTE 2: WHY THE FACTOR 3????
         self.eig = [rhog, vg[1], vg[0], vg[2]]
-        for x in tau:
-            self.eig.extend([sigma_norm(x), u[1](x), u[0](x), u[2](x)])
+
+        for x,w in zip(tau,weights):
+            self.eig.extend([3*w*sigma_norm(x), u[1](x), u[0](x), u[2](x)])
