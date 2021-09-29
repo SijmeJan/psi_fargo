@@ -62,20 +62,20 @@ class FargoSetup:
         print('Setup created: ' + output_dir)
 
 # Number of dust fluids/ dust nodes
-n_dust = 4
+n_dust = 1
 
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: all Stokes numbers
-#stokes_range = Ts
+stokes_range = [0.1]
 #stokes_range = [0.00316228, 0.03162278]  #[0.0425, 0.1]
-stokes_range = [1.0e-2, 0.1]
+#stokes_range = [1.0e-2, 0.1]
 
 # For continuum: SizeDistribution object
 # For discrete multifluid: all dust densities
-#size_distribution = eps
+size_distribution = [3.0]
 #size_distribution = [0.48050615, 1.51949385]
 #size_distribution = [0.8403834887142569, 4.2359685932218305]
-size_distribution = SizeDistribution(stokes_range)
+#size_distribution = SizeDistribution(stokes_range)
 dust_density = 3.0  #np.sum(size_distribution)
 gas_density = 1.0
 
@@ -86,19 +86,19 @@ pd = Polydust(n_dust, stokes_range, dust_density,
 Kx = 30
 Kz = 30
 #mode = single_mode.GasEpicycle(30, 30, 20, 0.01)
-#mode = single_mode.Linear3(1.0e-5)
+mode = single_mode.LinearA(1.0e-5)
 #mode = single_mode.RandomFixedK(n_dust, 1.0e-5, Kx, Kz)
-mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
+#mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
 
 Ly = 2*np.pi/Kx            # 'radial' box size
 Lz = 2*np.pi/Kz            # vertical box size
-Ny = 8                          # 'radial' number of grid points
-Nz = 8                          # vertical number of grid points
+Ny = 32                          # 'radial' number of grid points
+Nz = 32                          # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
 try:
-    setup = FargoSetup('psi_linearA')
+    setup = FargoSetup('linearA')
 except:
     raise
 
