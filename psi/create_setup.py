@@ -18,20 +18,22 @@ class FargoSetup:
     def __init__(self, setup_name, fargo_dir=None):
         self.setup_name = setup_name
 
-        self.fargo_dir = fargo_dir
+        self.psi_dir = os.path.dirname(os.path.abspath(__file__))
+
+        #self.fargo_dir = fargo_dir
 
         # Installation directory not supplied: guess
-        if fargo_dir is None:
-            guess_dir = ['/Users/sjp/Codes/psi_fargo',
-                         '/astro/sjp/Codes/psi_fargo']
+        #if fargo_dir is None:
+        #    guess_dir = ['/Users/sjp/Codes/psi_fargo',
+        #                 '/astro/sjp/Codes/psi_fargo']
 
-            for direc in guess_dir:
-                if os.path.isdir(direc):
-                    self.fargo_dir = direc
+        #    for direc in guess_dir:
+        #        if os.path.isdir(direc):
+        #            self.fargo_dir = direc
 
-        if self.fargo_dir is None:
-            raise RuntimeError('Could not figure out FARGO installation directory!')
-        print('Using Fargo directory ' + self.fargo_dir)
+        #if self.fargo_dir is None:
+        #    raise RuntimeError('Could not figure out FARGO installation directory!')
+        #print('Using Fargo directory ' + self.fargo_dir)
 
     def create(self, polydust, mode, shearing_box):
         created_files = [self.setup_name + '.opt',
@@ -44,7 +46,8 @@ class FargoSetup:
         created_files.extend(fargo_boundary.write_boundary_files(self.setup_name, polydust.N))
 
         # Create setup directory if not exists
-        output_dir = self.fargo_dir + '/public/setups/' + self.setup_name
+        #output_dir = self.fargo_dir + '/public/setups/' + self.setup_name
+        output_dir = self.psi_dir + '/../setups/' + self.setup_name
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         else:
@@ -54,7 +57,7 @@ class FargoSetup:
         for f in created_files:
             os.replace(f, output_dir + '/' + f)
 
-        shutil.copy('boundaries.txt', output_dir + '/' + 'boundaries.txt')
+        shutil.copy(self.psi_dir + '/boundaries.txt', output_dir + '/' + 'boundaries.txt')
 
         print('Setup created: ' + output_dir)
 
