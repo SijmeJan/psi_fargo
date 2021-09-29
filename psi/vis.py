@@ -311,8 +311,8 @@ def ErrorPlot(direcs, Kx, Kz,
 direcs = [
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16_gauss/',
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND8_gauss/'
-          '/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
+          '/Users/sjp/Codes/psi_fargo/data/test/N64_ND4_gauss/'
+          #'/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
 
 #direcs = [
