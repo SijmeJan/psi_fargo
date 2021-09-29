@@ -59,7 +59,7 @@ class FargoSetup:
         print('Setup created: ' + output_dir)
 
 # Number of dust fluids/ dust nodes
-n_dust = 8
+n_dust = 4
 
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: all Stokes numbers
@@ -89,8 +89,8 @@ mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
 
 Ly = 2*np.pi/Kx            # 'radial' box size
 Lz = 2*np.pi/Kz            # vertical box size
-Ny = 64                          # 'radial' number of grid points
-Nz = 64                          # vertical number of grid points
+Ny = 8                          # 'radial' number of grid points
+Nz = 8                          # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
