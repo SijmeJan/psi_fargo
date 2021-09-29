@@ -42,7 +42,7 @@ def write_par_file(setup_name, pd, shearing_box):
     #add_line(lines, 'CFL        0.0044     Courant number\n')
     add_line(lines, 'DT         0.01     Time step length\n')
     add_line(lines, 'Ninterm    10      Time steps between outputs\n')
-    add_line(lines, 'Ntot       5000    Total number of time steps\n')
+    add_line(lines, 'Ntot       2000    Total number of time steps\n')
 
     add_line(lines, 'OutputDir      @outputs/' + setup_name + '\n')
 
