@@ -168,12 +168,12 @@ def EigenVectorPlot(direcs, Kx, Kz,
                       np.log10(stokes_range[1]), 1000)
 
     plt.subplot(2,2,1)
-    plt.plot(tau, np.real(3*sigma(tau)))
-    plt.plot(tau, np.imag(3*sigma(tau)))
+    plt.plot(tau, np.real(np.pi*sigma(tau)))
+    plt.plot(tau, np.imag(np.pi*sigma(tau)))
 
-    #plt.subplot(2,2,2)
-    #plt.plot(tau, np.real(u[0](tau)))
-    #plt.plot(tau, np.imag(u[0](tau)))
+    plt.subplot(2,2,2)
+    plt.plot(tau, np.real(u[0](tau)))
+    plt.plot(tau, np.imag(u[0](tau)))
 
     plt.subplot(2,2,3)
     plt.plot(tau, np.real(u[1](tau)))
@@ -256,12 +256,14 @@ def EigenVectorPlot(direcs, Kx, Kz,
 def ErrorPlot(direcs, Kx, Kz,
               dust_to_gas_ratio = 2.0,
               stokes_range=[0.001,0.1]):
-    rhog, vg, sigma, u = \
-          PSI_eigen(dust_to_gas_ratio=dust_to_gas_ratio,
-                    stokes_range=stokes_range,
-                    wave_number_x=Kx,
-                    wave_number_z=Kz)
-    w = PSI_eigen.eigenvalue
+    #rhog, vg, sigma, u = \
+    #      PSI_eigen(dust_to_gas_ratio=dust_to_gas_ratio,
+    #                stokes_range=stokes_range,
+    #                wave_number_x=Kx,
+    #                wave_number_z=Kz)
+    #w = PSI_eigen.eigenvalue
+
+    w = -1j*(-0.3027262829 + 0.3242790653j)
 
     for direc in direcs:
         coord = Coordinates(direc)
@@ -289,19 +291,30 @@ def ErrorPlot(direcs, Kx, Kz,
             expminz = np.exp(1j*(Kx*x + Kz*zmin - w*t[n]))
 
             for i, fluid in enumerate(pf.Fluids):
-                dens_ana = state0[4*i] + np.real(state1[4*i]*expmed)
-                velx_ana = state0[4*i+1] + np.real(state1[4*i+1]*expminx)
-                vely_ana = state0[4*i+2] + np.real(state1[4*i+2]*expmed) - 1.5*x
-                velz_ana = state0[4*i+3] + np.real(state1[4*i+3]*expminz)
+                dens_ana = np.real(state0[4*i] + state1[4*i]*expmed)
+                velx_ana = np.real(state0[4*i+1] + state1[4*i+1]*expminx)
+                vely_ana = np.real(state0[4*i+2] + state1[4*i+2]*expmed) - 1.5*x
+                velz_ana = np.real(state0[4*i+3] + state1[4*i+3]*expminz)
 
                 ret[n, 4*i] = np.max(np.abs(fluid.dens[:,0,:] - dens_ana))
                 ret[n, 4*i+1] = np.max(np.abs(fluid.velx[:,0,:] - velx_ana))
                 ret[n, 4*i+2] = np.max(np.abs(fluid.vely[:,0,:] - vely_ana))
                 ret[n, 4*i+3] = np.max(np.abs(fluid.velz[:,0,:] - velz_ana))
 
-        plt.plot(t[1:], ret[1:, 1])
+                #if i == 0 and n==0:
+                #    plt.subplot(121)
+                #    plt.contourf(fluid.velz[:,0,:])
+                #    plt.colorbar()
+                #    plt.subplot(122)
+                #    plt.contourf(velz_ana)
+                #    plt.colorbar()
+
+                #    plt.show()
+
+        #plt.plot(t[1:], ret[1:, 1])
         plt.plot(t[1:], ret[1:, 2])
-        plt.plot(t[1:], ret[1:, 3])
+        #plt.plot(t[1:], ret[1:, 3])
+
 
         print(np.max([ret[:,1], ret[:,2]]))
 
@@ -311,7 +324,13 @@ def ErrorPlot(direcs, Kx, Kz,
 direcs = [
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16_gauss/',
-          '/Users/sjp/Codes/psi_fargo/data/test/N64_ND4_gauss/'
+          '/Users/sjp/Codes/psi_fargo/data/test/N64_ND8_gauss/',
+          #'/Users/sjp/Codes/psi_fargo/data/test/N8_ND4_gauss_cfl044/',
+          #'/Users/sjp/Codes/psi_fargo/data/test/N8_ND4_gauss_cfl0044/',
+          #'/Users/sjp/Codes/psi_fargo/data/lin3/N8/',
+          #'/Users/sjp/Codes/psi_fargo/data/lin3/N16/',
+          #'/Users/sjp/Codes/psi_fargo/data/lin3/N32/',
+          #'/Users/sjp/Codes/psi_fargo/data/lin3/N64/',
           #'/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
 
@@ -326,12 +345,12 @@ direcs = [
 #         ]
 
 #FourierPlot(direcs, 30, 30)
-#EigenVectorPlot(direcs, 30, 30,
-#                dust_to_gas_ratio = 3,
-#                stokes_range=[0.01,0.1])
-ErrorPlot(direcs, 30, 30,
-          dust_to_gas_ratio = 3,
-          stokes_range=[0.01,0.1])
+EigenVectorPlot(direcs, 30, 30,
+                dust_to_gas_ratio = 3,
+                stokes_range=[0.01,0.1])
+#ErrorPlot(direcs, 50, 50,
+#          dust_to_gas_ratio = 1.5,
+#          stokes_range=[0.01,0.1])
 exit()
 
 #exit()
