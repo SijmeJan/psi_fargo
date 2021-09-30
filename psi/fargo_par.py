@@ -1,6 +1,6 @@
 from common import *
 
-def write_par_file(setup_name, pd, shearing_box):
+def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44):
     n_dust = pd.N
     stokes = pd.dust_nodes()
 
@@ -39,12 +39,13 @@ def write_par_file(setup_name, pd, shearing_box):
 
     add_line(lines, '\n### Output control parameters\n\n')
 
-    #add_line(lines, 'CFL        0.0044     Courant number\n')
-    add_line(lines, 'DT         0.01     Time step length\n')
-    add_line(lines, 'Ninterm    10      Time steps between outputs\n')
-    add_line(lines, 'Ntot       2000    Total number of time steps\n')
+    add_line(lines, 'CFL        {}     Courant number\n'.format(cfl))
+    add_line(lines, 'DT         {}     Time step length\n'.format(output.dt))
+    add_line(lines, 'Ninterm    {}     Time steps between outputs\n'.format(output.Ninterm))
+    add_line(lines, 'Ntot       {}    Total number of time steps\n'.format(output.Ntot))
 
-    add_line(lines, 'OutputDir      @outputs/' + setup_name + '\n')
+    #add_line(lines, 'OutputDir      @outputs/' + setup_name + '\n')
+    add_line(lines, 'OutputDir      {}\n'.format(output.output_dir))
 
     fname = setup_name + '.par'
     write_file(fname, lines)
