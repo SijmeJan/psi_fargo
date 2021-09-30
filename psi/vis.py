@@ -256,14 +256,14 @@ def EigenVectorPlot(direcs, Kx, Kz,
 def ErrorPlot(direcs, Kx, Kz,
               dust_to_gas_ratio = 2.0,
               stokes_range=[0.001,0.1]):
-    #rhog, vg, sigma, u = \
-    #      PSI_eigen(dust_to_gas_ratio=dust_to_gas_ratio,
-    #                stokes_range=stokes_range,
-    #                wave_number_x=Kx,
-    #                wave_number_z=Kz)
-    #w = PSI_eigen.eigenvalue
+    rhog, vg, sigma, u = \
+          PSI_eigen(dust_to_gas_ratio=dust_to_gas_ratio,
+                    stokes_range=stokes_range,
+                    wave_number_x=Kx,
+                    wave_number_z=Kz)
+    w = PSI_eigen.eigenvalue
 
-    w = -1j*(-0.3027262829 + 0.3242790653j)
+    #w = -1j*(-0.3027262829 + 0.3242790653j)
 
     for direc in direcs:
         coord = Coordinates(direc)
@@ -311,9 +311,9 @@ def ErrorPlot(direcs, Kx, Kz,
 
                 #    plt.show()
 
-        #plt.plot(t[1:], ret[1:, 1])
+        plt.plot(t[1:], ret[1:, 1])
         plt.plot(t[1:], ret[1:, 2])
-        #plt.plot(t[1:], ret[1:, 3])
+        plt.plot(t[1:], ret[1:, 3])
 
 
         print(np.max([ret[:,1], ret[:,2]]))
@@ -324,8 +324,7 @@ def ErrorPlot(direcs, Kx, Kz,
 direcs = [
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16_gauss/',
-          '/Users/sjp/Codes/psi_fargo/data/test/N64_ND8_gauss/',
-          #'/Users/sjp/Codes/psi_fargo/data/test/N8_ND4_gauss_cfl044/',
+          '/Users/sjp/Codes/psi_fargo/data/mu3_K30/N64_ND8_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/test/N8_ND4_gauss_cfl0044/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N8/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N16/',
@@ -345,12 +344,12 @@ direcs = [
 #         ]
 
 #FourierPlot(direcs, 30, 30)
-EigenVectorPlot(direcs, 30, 30,
-                dust_to_gas_ratio = 3,
-                stokes_range=[0.01,0.1])
-#ErrorPlot(direcs, 50, 50,
-#          dust_to_gas_ratio = 1.5,
-#          stokes_range=[0.01,0.1])
+#EigenVectorPlot(direcs, 30, 30,
+#                dust_to_gas_ratio = 3,
+#                stokes_range=[0.01,0.1])
+ErrorPlot(direcs, 30, 30,
+          dust_to_gas_ratio = 3.0,
+          stokes_range=[0.01,0.1])
 exit()
 
 #exit()
