@@ -10,13 +10,13 @@ from polydust import Polydust, SizeDistribution
 #stokes_range = [0.0425, 0.1]
 stokes_range = [1.0e-2, 0.1]
 
-pd = Polydust(n_dust = 8,
+pd = Polydust(n_dust = 16,
               stokes_range = stokes_range,
               dust_density = 3.0,
               gas_density = 1.0,
               #size_distribution = [1.0, 0.5],
               size_distribution = SizeDistribution(stokes_range),
-              gauss_legendre=True)
+              gauss_legendre=False)
 
 # Add single mode perturbation
 Kx = 30
@@ -28,12 +28,12 @@ mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
 
 Ly = 2*np.pi/Kx            # 'radial' box size
 Lz = 2*np.pi/Kz            # vertical box size
-Ny = 64                          # 'radial' number of grid points
-Nz = 64                          # vertical number of grid points
+Ny = 8                          # 'radial' number of grid points
+Nz = 8                          # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
-output = Output('/Users/sjp/Codes/psi_fargo/data/lin3/N64',
+output = Output('/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND16',
                 dt=0.01, Ninterm=10, Ntot=2000)
 
 try:

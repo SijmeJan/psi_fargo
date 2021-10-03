@@ -149,7 +149,7 @@ def FourierPlot(direcs, Kx, Kz):
     #plt.plot(t, 1.0e-7*np.exp(0.4190091323*t))
     #plt.plot(t, 1.0e-5*np.exp(0.3027262829*t))
     #plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
-    plt.plot(t, 1.0e-5*np.exp(0.17*t))
+    #plt.plot(t, 1.0e-5*np.exp(0.17*t))
     #plt.plot(t, 1.0e-5*np.exp(0.42185357935887124*t))
     #plt.plot(t, 1.0e-6*np.exp(0.0154839*t))
 
@@ -170,18 +170,22 @@ def EigenVectorPlot(direcs, Kx, Kz,
     plt.subplot(2,2,1)
     plt.plot(tau, np.real(np.pi*sigma(tau)))
     plt.plot(tau, np.imag(np.pi*sigma(tau)))
+    plt.xscale('log')
 
     plt.subplot(2,2,2)
     plt.plot(tau, np.real(u[0](tau)))
     plt.plot(tau, np.imag(u[0](tau)))
+    plt.xscale('log')
 
     plt.subplot(2,2,3)
     plt.plot(tau, np.real(u[1](tau)))
     plt.plot(tau, np.imag(u[1](tau)))
+    plt.xscale('log')
 
     plt.subplot(2,2,4)
     plt.plot(tau, np.real(u[2](tau)))
     plt.plot(tau, np.imag(u[2](tau)))
+    plt.xscale('log')
 
     for direc in direcs:
         ret = Fourier(direc, [max_save(direc) - 1], Kx, Kz)
@@ -322,10 +326,13 @@ def ErrorPlot(direcs, Kx, Kz,
     plt.show()
 
 direcs = [
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32_gauss/',
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16_gauss/',
-          '/Users/sjp/Codes/psi_fargo/data/mu3_K30/N64_ND8_gauss/',
-          #'/Users/sjp/Codes/psi_fargo/data/test/N8_ND4_gauss_cfl0044/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K100/N8_ND64/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N32_ND16/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND32/',
+          '/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND8/',
+          '/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND8_gauss/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N64_ND4_gauss/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N128_ND8_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N8/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N16/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N32/',
@@ -333,65 +340,27 @@ direcs = [
           #'/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
 
-#direcs = [
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32/',
-#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND8/',
-#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND16/',
-#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND32/',
-#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2_discrete/N32_ND64/'
-          #'/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND16/',
-#          '/Users/sjp/Codes/psi_fargo/data/psi_mu2/N32_ND32/'
-#         ]
 
-#FourierPlot(direcs, 30, 30)
-#EigenVectorPlot(direcs, 30, 30,
+#FourierPlot(direcs, 0, 0)
+#EigenVectorPlot(direcs, 100, 200,
 #                dust_to_gas_ratio = 3,
-#                stokes_range=[0.01,0.1])
+#                stokes_range=[1.0e-8,0.1])
 ErrorPlot(direcs, 30, 30,
           dust_to_gas_ratio = 3.0,
-          stokes_range=[0.01,0.1])
+          stokes_range=[0.01, 0.1])
 exit()
 
-#exit()
+coord = Coordinates(direcs[0])
 
 pf = PolyFluid(direcs[0])
-pf.read(0)
+pf.read(10)
 
-for direc in direcs:
-    pf = PolyFluid(direc)
-
-    data = np.genfromtxt(direc + '/variables.par',dtype='str')
-    dt = 0.0
-    n = 1
-    for d in data:
-        if d[0] == 'DT':
-            dt = float(d[1])
-        if d[0] == 'NINTERM':
-            n = int(d[1])
-
-    t = dt*n*np.arange(max_save(direc))
-
-    gasdens = []
-    dustdens = []
-    for n in range(0, max_save(direc)):
-        pf.read(n)
-
-        gasdens.append(pf.Fluids[0].dens[0, 0, 0] - 1.0)
-        dustdens.append(pf.Fluids[1].dens[0, 0, 0] - 3.0)
-
-    gasdens = np.asarray(gasdens/np.max(gasdens))
-    dustdens = np.asarray(dustdens/np.max(dustdens))
-
-    plt.plot(t, gasdens)
-    plt.plot(t, dustdens)
+plt.contourf(coord.x,coord.z, pf.Fluids[0].velx[:,0,:], levels=100)
+plt.colorbar()
 
 plt.show()
-    #ret = Fourier(direc, range(0, max_save(direc)), 60, 60)
 
-#    plt.plot(pf.stopping_times, np.real(ret[-1,4::4]))
-
-exit()
-
+#exit()
 
 
 #plt.xscale('log')
