@@ -11,7 +11,7 @@ def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
                  imag_range=[1.0e-8, 1])
 
     roots = pm.calculate(wave_number_x=wave_number_x,
-                         wave_number_z=wave_number_x)
+                         wave_number_z=wave_number_z)
 
     rhog, vg, sigma, u = \
       pm.eigenvector(roots[0], wave_number_x=wave_number_x,
