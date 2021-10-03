@@ -65,11 +65,6 @@ class Polydust():
                 tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
             else:
                 # Constant spacing in log tau space
-                #xi1 = np.log10(self.stokes_range[0])
-                #xi2 = np.log10(self.stokes_range[1])
-
-                #tau = np.logspace(xi1, xi2, self.N)
-
                 xi1 = np.log(self.stokes_range[0])
                 xi2 = np.log(self.stokes_range[1])
 
@@ -110,6 +105,18 @@ class Polydust():
                 tau = np.exp(xi_edge + 0.5*dxi)[0:-1]
 
                 dens = self.dust_density*self.sigma(tau)*dxi*tau
+
+                self.finite_volume = True
+                # Set dust density so mass in size bin is exact MRN
+                if (self.finite_volume is True):
+                    t_l = np.exp(0.5*xi_edge)[0:-1]
+                    t_r = np.exp(0.5*np.roll(xi_edge, -1))[0:-1]
+                    dens = self.dust_density*(t_r - t_l)/(t_r[-1] - t_l[0])
+
+                    # Make sure self.sigma is no longer callable: discrete!
+                    self.sigma = dens/self.dust_density
+                    self.stokes_range = tau
+
         else:
             # Discrete dust sizes
             tau = self.stokes_range
