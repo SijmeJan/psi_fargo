@@ -15,13 +15,14 @@ class Polydust():
     def __init__(self, n_dust, stokes_range,
                  dust_density, gas_density,
                  size_distribution=None,
-                 gauss_legendre=True):
+                 gauss_legendre=True,
+                 discrete_equilibrium=False):
         self.N = n_dust
         self.stokes_range = np.asarray(stokes_range)
         self.dust_density = dust_density
         self.gas_density = gas_density
         self.gauss_legendre = gauss_legendre
-
+        self.discrete_equilibrium = discrete_equilibrium
         self.sigma = None
         # Continuous size distribution
         if isinstance(size_distribution, SizeDistribution):
@@ -30,6 +31,8 @@ class Polydust():
                 print('Using Gauss-Legendre quadrature')
             else:
                 print('Using equidistant nodes')
+                if self.discrete_equilibrium is True:
+                    print('Using discrete equilibrium')
             self.sigma = size_distribution.sigma
         else:
             if size_distribution is None:
@@ -39,7 +42,10 @@ class Polydust():
                     print('Using Gauss-Legendre quadrature')
                 else:
                     print('Using equidistant nodes')
+                    if self.discrete_equilibrium is True:
+                        print('Using discrete equilibrium')
                 size_distribution = SizeDistribution(stokes_range)
+                self.sigma = size_distribution.sigma
             else:
                 print('Discrete dust sizes with {} dust species'.format(self.N))
                 self.N = len(stokes_range)
@@ -106,9 +112,8 @@ class Polydust():
 
                 dens = self.dust_density*self.sigma(tau)*dxi*tau
 
-                self.finite_volume = True
                 # Set dust density so mass in size bin is exact MRN
-                if (self.finite_volume is True):
+                if (self.discrete_equilibrium is True):
                     t_l = np.exp(0.5*xi_edge)[0:-1]
                     t_r = np.exp(0.5*np.roll(xi_edge, -1))[0:-1]
                     dens = self.dust_density*(t_r - t_l)/(t_r[-1] - t_l[0])
