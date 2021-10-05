@@ -39,8 +39,12 @@ class FargoSetup:
                                  shearing_box,
                                  output,
                                  cfl=cfl)
+
+        perturbation = None
+        if mode is not None:
+            perturbation=mode.to_string()
         initial_conditions.write_condinit_file(polydust,
-                                               perturbation=mode.to_string())
+                                               perturbation=perturbation)
         created_files.extend(fargo_boundary.write_boundary_files(self.setup_name, polydust.N))
 
         # Create setup directory if not exists
