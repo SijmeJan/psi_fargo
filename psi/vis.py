@@ -6,6 +6,7 @@ from os import listdir
 from scipy.special import roots_legendre
 
 from single_mode import PSI_eigen
+from polydust import Polydust
 
 class Scalar:
     def __init__(self, filename):
@@ -280,10 +281,18 @@ def ErrorPlot(direcs, Kx, Kz,
         pf = PolyFluid(direc)
         pf.read(0)
 
+        pd = Polydust(pf.n_dust, stokes_range,
+                      dust_to_gas_ratio, 1.0)
+
+        v_eq = pd.equilibrium_velocities(pf.stopping_times)
+
         # Initial background
         state0 = Fourier(direc, [0], 0, 0)[0]
         # Initial perturbation
         state1 = Fourier(direc, [0], Kx, Kz)[0]
+
+        state0[1] = v_eq[0]
+        state0[2] = v_eq[1]
 
         ret = np.empty((len(t), 4*(pf.n_dust+1)), dtype=float)
 
@@ -329,8 +338,8 @@ direcs = [
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K100/N8_ND64/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N32_ND16/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND32/',
-          '/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND8/',
-          '/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND8_gauss/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N256_ND8/',
+          '/Users/sjp/Codes/psi_fargo/data/mu3_K30_wide/test/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N64_ND4_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N128_ND8_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N8/',
@@ -339,7 +348,6 @@ direcs = [
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N64/',
           #'/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
-
 
 #FourierPlot(direcs, 0, 0)
 #EigenVectorPlot(direcs, 100, 200,
