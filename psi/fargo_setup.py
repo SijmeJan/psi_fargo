@@ -40,12 +40,15 @@ class FargoSetup:
 
     Args:
         setup_name: Name of setup to be created
+        fargo_dir (optional): Path to public FARGO directory when not using vanila submodule.
     '''
-    def __init__(self, setup_name):
+    def __init__(self, setup_name, fargo_dir=None):
         self.setup_name = setup_name
 
         # Path of current file, should be /path/to/psi_fargo/psi
         self.psi_dir = os.path.dirname(os.path.abspath(__file__))
+
+        self.fargo_dir = fargo_dir
 
     def create(self, polydust, mode, shearing_box, output, cfl=0.44):
         '''Create FARGO setup
@@ -76,8 +79,13 @@ class FargoSetup:
                                                perturbation=perturbation)
         created_files.extend(fargo_boundary.write_boundary_files(self.setup_name, polydust.N))
 
-        # Create setup directory if not exists
+        # Setup directory
         output_dir = self.psi_dir + '/../public/setups/' + self.setup_name
+        # If not using submodule FARGO
+        if self.fargo_dir is not None:
+            output_dir = self.fargo_dir + '/setups' + self.setup_name
+
+        # Create setup directory if not exists
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         else:
