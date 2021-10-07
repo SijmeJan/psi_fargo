@@ -10,6 +10,14 @@ import fargo_boundary
 from polydust import Polydust, SizeDistribution
 
 class Output:
+    '''Class governing FARGO output
+
+    Args:
+        output_dir: Output directory
+        dt: Time between fine-grain outputs
+        Ninterm: Number of fine-grain outputs per full output
+        Ntot: Total number of full outputs
+    '''
     def __init__(self, output_dir, dt, Ninterm, Ntot):
         self.output_dir = output_dir
         self.dt = dt
@@ -17,18 +25,38 @@ class Output:
         self.Ntot = Ntot
 
 class ShearingBox:
-    def __init__(self, dims=None, mesh_size=None):
+    '''Class governing shearing box parameters
+
+    Args:
+        dims: Dimensions of the box, should have 3 elements.
+        mesh_size: grid points for each dimension, should have 3 elements.
+    '''
+    def __init__(self, dims, mesh_size):
         self.dims = dims
         self.mesh_size = mesh_size
 
 class FargoSetup:
-    def __init__(self, setup_name, fargo_dir=None):
+    '''Class for creating a new PSI FARGO setup
+
+    Args:
+        setup_name: Name of setup to be created
+    '''
+    def __init__(self, setup_name):
         self.setup_name = setup_name
 
         # Path of current file, should be /path/to/psi_fargo/psi
         self.psi_dir = os.path.dirname(os.path.abspath(__file__))
 
     def create(self, polydust, mode, shearing_box, output, cfl=0.44):
+        '''Create FARGO setup
+
+        Args:
+            polydust: PolyDust object
+            mode: SingleMode object, or None.
+            shearing_box: ShearingBox object
+            output: Output object
+            cfl (optional): Courant number to use. Defaults to 0.44.
+        '''
         # Going to create a .opt file, a .par file and initial conditions
         created_files = [self.setup_name + '.opt',
                          self.setup_name + '.par',
@@ -43,6 +71,7 @@ class FargoSetup:
         perturbation = None
         if mode is not None:
             perturbation=mode.to_string()
+
         initial_conditions.write_condinit_file(polydust,
                                                perturbation=perturbation)
         created_files.extend(fargo_boundary.write_boundary_files(self.setup_name, polydust.N))

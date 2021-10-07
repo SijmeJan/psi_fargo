@@ -5,6 +5,12 @@ def add_option(lines, option):
     add_line(lines, 'FARGO_OPT +=  -D'+ option + '\n')
 
 def write_opt_file(setup_name, pd):
+    '''Write FARGO .opt file
+
+    Args:
+        setup_name: Name of the setup being created
+        pd: Polydust object
+    '''
     n_dust = pd.N
     lines = ['# PSI FARGO2D setup using ' + str(n_dust) + ' dust fluids\n\n']
 
@@ -27,7 +33,6 @@ def write_opt_file(setup_name, pd):
     add_option(lines, 'NOSUBSTEP2')
 
     add_option(lines, 'DRAGFORCE')
-    #add_option(lines, 'EXPLICIT_DRAG')
     add_option(lines, 'CONSTANTSTOKESNUMBER')
     #add_option(lines, 'COLLISIONPREDICTOR')
 

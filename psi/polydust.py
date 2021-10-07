@@ -2,7 +2,14 @@ import numpy as np
 from scipy.special import roots_legendre
 from scipy.integrate import quad
 
+#from multistream import MSI
+
 class SizeDistribution():
+    '''Class holding a size (or stopping time) distribution
+
+    Args:
+        stokes_range: minimum and maximum Stokes number
+    '''
     def __init__(self, stokes_range):
         self.taumin = stokes_range[0]
         self.taumax = stokes_range[1]
@@ -17,15 +24,29 @@ class Polydust():
                  size_distribution=None,
                  gauss_legendre=True,
                  discrete_equilibrium=False):
+        '''Class for polydisperse dust component in FARGO3D simulations.
+
+        Args:
+            n_dust: Number of collocation points ('dust fluids')
+            stokes_range: Range of Stokes numbers to consider. In case of discrete sizes, it can be a list of Stokes numbers.
+            dust_density: background dust density
+            gas_density: background gas density
+            size_distribution (optional): Either a SizeDistribution object, or a list of dust densities, in which case the numer of elements should be equal to the number of elements of stokes_range. Defaults to None, which is a continuous MRN size distribution.
+            gauss_legendre (optional): Flag whether to use Gauss-Legendre collocation points. If False, use equidistant nodes in log(tau) space. Defaults to True.
+            discrete_equilibrium (optional): In case of equidistant nodes, force a discrete equilibrium a la Krapp et al. and Chao-Chin & Zhu. Defaults to False.
+        '''
+
         self.N = n_dust
         self.stokes_range = np.asarray(stokes_range)
         self.dust_density = dust_density
         self.gas_density = gas_density
         self.gauss_legendre = gauss_legendre
         self.discrete_equilibrium = discrete_equilibrium
+
+        # Set the size density function
         self.sigma = None
-        # Continuous size distribution
         if isinstance(size_distribution, SizeDistribution):
+            # Continuous size distribution
             print('Continuous size distribution with {} nodes'.format(self.N))
             if self.gauss_legendre is True:
                 print('Using Gauss-Legendre quadrature')
@@ -55,11 +76,15 @@ class Polydust():
                 self.sigma = self.sigma/np.sum(self.sigma)
 
     def nodes_and_weights(self):
+        '''Return Gauss-Legendre nodes and weights'''
         return roots_legendre(self.N)
 
     def dust_nodes(self):
+        '''Return collocation points'''
         if callable(self.sigma):
+            # Continuous size distribution
             if self.gauss_legendre is True:
+                # Gauss-Legendre collocation points
                 xi, weights = self.nodes_and_weights()
 
                 xi = np.asarray(xi)
@@ -87,8 +112,11 @@ class Polydust():
         return tau
 
     def dust_densities(self):
+        '''Return densities at collocation points'''
         if callable(self.sigma):
+            # Continuous size distribution
             if self.gauss_legendre is True:
+                # Gauss-Legende collocation points
                 xi, weights = roots_legendre(self.N)
 
                 xi = np.asarray(xi)
@@ -122,6 +150,8 @@ class Polydust():
                     self.sigma = dens/self.dust_density
                     self.stokes_range = tau
 
+                    #print(self.sigma, tau)
+
         else:
             # Discrete dust sizes
             tau = self.stokes_range
@@ -133,11 +163,19 @@ class Polydust():
         return tau, dens
 
     def equilibrium_velocities(self, tau):
+        '''Return equilibrium dust and gas velocities
+
+        Args:
+           tau: list of stopping times
+        '''
         if callable(self.sigma):
-            f = lambda x: self.sigma(x)/(1.0 + x*x)
-            J0 = quad(f, self.stokes_range[0], self.stokes_range[1])[0]
-            f = lambda x: self.sigma(x)*x/(1.0 + x*x)
-            J1 = quad(f, self.stokes_range[0], self.stokes_range[1])[0]
+            # Continuous size distribution
+            f = lambda x: np.exp(x)*self.sigma(np.exp(x))/(1.0 + np.exp(2*x))
+            J0 = quad(f, np.log(self.stokes_range[0]),
+                         np.log(self.stokes_range[1]))[0]
+            f = lambda x: np.exp(2*x)*self.sigma(np.exp(x))/(1.0 + np.exp(2*x))
+            J1 = quad(f, np.log(self.stokes_range[0]),
+                         np.log(self.stokes_range[1]))[0]
 
             J0 = J0*self.dust_density/self.gas_density
             J1 = J1*self.dust_density/self.gas_density
@@ -148,11 +186,13 @@ class Polydust():
             v.append(-(1 + J0)/denom) # Gas vy
             v.append(0.0)             # Gas vz
 
+            # Dust velocities
             for t in tau:
                 v.append(2*(J1 - t*(1 + J0))/((1 + t*t)*denom))
                 v.append(-(1 + J0 + t*J1)/((1 + t*t)*denom))
                 v.append(0.0)
         else:
+            # Discrete dust sizes, override argument
             tau = np.asarray(self.stokes_range)
 
             mu = self.dust_density/self.gas_density
@@ -172,8 +212,17 @@ class Polydust():
         return np.asarray(v)
 
     def initial_conditions(self):
+        '''Return FARGO initial conditions (equilibrium)'''
+
+        # Collocation points and densities
         tau, dens = self.dust_densities()
 
+        # Equilibrium velocities
         v = self.equilibrium_velocities(tau)
 
         return tau, dens, v
+
+    #def growth_rate(self, Kx, Kz):
+    #    tau, dens = self.dust_densities()
+    #
+    #    return MSI(dens, tau).max_growth(Kx, Kz)

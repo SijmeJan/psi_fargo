@@ -4,6 +4,7 @@ from scipy.optimize import fsolve
 from scipy import linalg
 from os import listdir
 from scipy.special import roots_legendre
+from scipy.interpolate import BarycentricInterpolator, KroghInterpolator, lagrange
 
 from single_mode import PSI_eigen
 from polydust import Polydust
@@ -86,6 +87,49 @@ class PolyFluid:
         for fluid in self.Fluids:
             fluid.read(number)
 
+    def average_stopping_time(self):
+        num = self.Fluids[1].dens*self.stopping_times[0]
+        denom = self.Fluids[1].dens
+
+        for n in range(2, self.n_dust + 1):
+            num = num + self.Fluids[n].dens*self.stopping_times[n-1]
+            denom = denom + self.Fluids[n].dens
+
+        return num/denom
+
+    def dust_density(self):
+        num = self.Fluids[1].dens
+
+        for n in range(2, self.n_dust + 1):
+            num = num + self.Fluids[n].dens
+
+        return num
+
+    def size_distribution(self, i, j, k):
+        # How to reconstruct the size distribution from nodal values?
+        xi, weights = roots_legendre(self.n_dust)
+        xi = np.asarray(xi)
+        weights = np.asarray(weights)
+
+        # Roundabout way to calc 0.5*log(taumax/taumin)
+        logfac = \
+          np.log(self.stopping_times[1]/self.stopping_times[0])/(xi[1]-xi[0])
+
+        x = xi #self.stopping_times
+        y = [self.Fluids[1].dens[i,j,k]]
+
+        for n in range(2, self.n_dust +1):
+            y.append(self.Fluids[n].dens[i,j,k])
+
+        # Convert to sigma
+        y = np.asarray(y)/weights/self.stopping_times/logfac
+
+        xi = np.linspace(-1, 1, 100)
+        res = BarycentricInterpolator(x, y)(xi)
+
+        return x, y, xi, res
+
+
 def time_stamps(direc, length):
     data = np.genfromtxt(direc + '/variables.par',dtype='str')
     dt = 0.0
@@ -144,7 +188,8 @@ def FourierPlot(direcs, Kx, Kz):
         #for i in range(1, int(len(ret[0,:])/4)):
         #    plt.plot(t, np.abs(ret[:,4*i]))
         plt.plot(t, np.abs(ret[:,1]))
-        #plt.plot(t, np.real(ret[:,2]))
+        plt.plot(t, np.abs(ret[:,2]))
+        plt.plot(t, np.abs(ret[:,3]))
 
 
     #plt.plot(t, 1.0e-7*np.exp(0.4190091323*t))
@@ -152,7 +197,7 @@ def FourierPlot(direcs, Kx, Kz):
     #plt.plot(t, 1.0e-5*np.exp(0.0980250*t))
     #plt.plot(t, 1.0e-5*np.exp(0.17*t))
     #plt.plot(t, 1.0e-5*np.exp(0.42185357935887124*t))
-    #plt.plot(t, 1.0e-6*np.exp(0.0154839*t))
+    plt.plot(t, 2.0e-5*np.exp(0.14117601*t))
 
     plt.yscale('log')
     plt.show()
@@ -269,6 +314,7 @@ def ErrorPlot(direcs, Kx, Kz,
     w = PSI_eigen.eigenvalue
 
     #w = -1j*(-0.3027262829 + 0.3242790653j)
+    #w = 0.3733047861642763+0.0021788291419847284j
 
     for direc in direcs:
         coord = Coordinates(direc)
@@ -281,18 +327,18 @@ def ErrorPlot(direcs, Kx, Kz,
         pf = PolyFluid(direc)
         pf.read(0)
 
-        pd = Polydust(pf.n_dust, stokes_range,
-                      dust_to_gas_ratio, 1.0)
+        #pd = Polydust(pf.n_dust, stokes_range,
+        #              dust_to_gas_ratio, 1.0)
 
-        v_eq = pd.equilibrium_velocities(pf.stopping_times)
+        #v_eq = pd.equilibrium_velocities(pf.stopping_times)
 
         # Initial background
         state0 = Fourier(direc, [0], 0, 0)[0]
         # Initial perturbation
         state1 = Fourier(direc, [0], Kx, Kz)[0]
 
-        state0[1] = v_eq[0]
-        state0[2] = v_eq[1]
+        #state0[1] = v_eq[0]
+        #state0[2] = v_eq[1]
 
         ret = np.empty((len(t), 4*(pf.n_dust+1)), dtype=float)
 
@@ -334,12 +380,90 @@ def ErrorPlot(direcs, Kx, Kz,
     plt.yscale('log')
     plt.show()
 
+def contour_dust_stop(direc, number):
+    coord = Coordinates(direc)
+
+    pf = PolyFluid(direc)
+    pf.read(number)
+
+    fig, axs = plt.subplots(1,2)
+
+    p = axs[0].contourf(coord.x,coord.z,
+                        pf.dust_density()[:,0,:], levels=100)
+    plt.colorbar(p, ax=axs[0])
+
+    q = axs[1].contourf(coord.x,coord.z,
+                        pf.average_stopping_time()[:,0,:], levels=100)
+    plt.colorbar(q, ax=axs[1])
+
+    plt.show()
+
+def scatter_dust_stop(direc, number):
+    coord = Coordinates(direc)
+
+    pf = PolyFluid(direc)
+    pf.read(number)
+
+    plt.plot(pf.dust_density()[:,0,:],
+             pf.average_stopping_time()[:,0,:], ls='None', marker='o')
+
+    plt.show()
+
+def stopping_time_distribution(direc, number, stokes_range):
+    pf = PolyFluid(direc)
+
+    for n in number:
+        pf.read(n)
+
+        # Look at maximum dust density
+        d = pf.dust_density()[:,0,:]
+        indx = np.argmax(d)
+        indx = np.unravel_index(indx, np.shape(d))
+        print(d[indx])
+
+        x, y, xi, sigma = pf.size_distribution(indx[0],0,indx[1])
+
+        tau = \
+          stokes_range[0]*np.power(stokes_range[1]/stokes_range[0], 0.5*(xi + 1))
+        tau_points = \
+          stokes_range[0]*np.power(stokes_range[1]/stokes_range[0], 0.5*(x + 1))
+
+        plt.plot(tau, sigma)
+        plt.plot(tau_points, y, ls='None', marker='o')
+
+        # Look at minimum dust density
+        d = pf.dust_density()[:,0,:]
+        indx = np.argmin(d)
+        indx = np.unravel_index(indx, np.shape(d))
+
+
+        x, y, xi, sigma = pf.size_distribution(indx[0],0,indx[1])
+
+        tau = \
+          stokes_range[0]*np.power(stokes_range[1]/stokes_range[0], 0.5*(xi + 1))
+        tau_points = \
+          stokes_range[0]*np.power(stokes_range[1]/stokes_range[0], 0.5*(x + 1))
+
+    #plt.plot(tau, sigma)
+    #plt.plot(tau_points, y, ls='None', marker='o')
+
+    plt.plot(tau, 3/np.sqrt(tau)/2/(np.sqrt(stokes_range[1]) - np.sqrt(stokes_range[0])))
+
+    plt.xlabel(r'$\tau_{\rm s}$')
+    plt.ylabel(r'$\sigma$')
+
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
+
 direcs = [
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K100/N8_ND64/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N32_ND16/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND32/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N256_ND8/',
-          '/Users/sjp/Codes/psi_fargo/data/mu3_K30_wide/test/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30_long/N32_ND8/',
+          '/Users/sjp/Codes/psi_fargo/data/mu1_K100/test/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30_long/N32_ND4/',
+          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30_long/N64_ND4/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N64_ND4_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N128_ND8_gauss/',
           #'/Users/sjp/Codes/psi_fargo/data/lin3/N8/',
@@ -349,27 +473,21 @@ direcs = [
           #'/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
           ]
 
-#FourierPlot(direcs, 0, 0)
+#stopping_time_distribution(direcs[0], [700,750,800,850,900,950,999], [0.01, 0.1])
+
+FourierPlot(direcs, 100, 100)
 #EigenVectorPlot(direcs, 100, 200,
 #                dust_to_gas_ratio = 3,
 #                stokes_range=[1.0e-8,0.1])
-ErrorPlot(direcs, 30, 30,
-          dust_to_gas_ratio = 3.0,
-          stokes_range=[0.01, 0.1])
-exit()
-
-coord = Coordinates(direcs[0])
-
-pf = PolyFluid(direcs[0])
-pf.read(10)
-
-plt.contourf(coord.x,coord.z, pf.Fluids[0].velx[:,0,:], levels=100)
-plt.colorbar()
-
-plt.show()
-
+#ErrorPlot(direcs, 100, 100,
+#          dust_to_gas_ratio = 1.0,
+#          stokes_range=[1.0e-4, 0.1])
 #exit()
 
+
+#exit()
+#contour_dust_stop(direcs[0], 500)
+#contour_dust_stop(direcs[1], 900)
 
 #plt.xscale('log')
 #plt.show()

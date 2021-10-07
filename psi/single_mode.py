@@ -4,6 +4,15 @@ from scipy import linalg
 from psitools.psi_mode import PSIMode
 
 def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
+    '''Calculate PSI eigenfunctions
+
+    Args:
+        dust_to_gas_ratio: Background dust to gas ratio
+        stokes_range: minimum and maximum Stokes number
+        wave_number_x: Kx
+        wave_number_z: Kz
+    '''
+    # Use PSIMode to calculate eigenvalue
     np.random.seed(0)
     pm = PSIMode(dust_to_gas_ratio=dust_to_gas_ratio,
                  stokes_range=stokes_range,
@@ -13,16 +22,26 @@ def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
     roots = pm.calculate(wave_number_x=wave_number_x,
                          wave_number_z=wave_number_z)
 
+    # Get corresponding eigenfunctions
     rhog, vg, sigma, u = \
       pm.eigenvector(roots[0], wave_number_x=wave_number_x,
                      wave_number_z=wave_number_z)
 
+    # Set local so we can access eigenvalue if needed
     PSI_eigen.eigenvalue = roots[0]
     print('Calculated PSI eigenvalue: ', roots[0])
 
     return rhog, vg, sigma, u
 
 class Perturbation():
+    '''Base class for PSI perturbations
+
+    Args:
+        n_dust: number of dust collocation points
+        amplitude: amplitude of perturbation
+        Kx: wave number x
+        Kz: wave number z
+    '''
     def __init__(self, n_dust, amplitude, Kx, Kz):
         self.Kx = Kx
         self.Kz = Kz
@@ -34,12 +53,13 @@ class Perturbation():
         self.set_eigenvector()
 
     def set_eigenvector(self):
+        '''Set eigenvector dummy, should be overridden'''
         self.eig = 0*self.eig
 
     def string_single(self, eig, stagger=None):
         '''Return string amp*(r*cos(Kx*x+Kz*z) - i*sin(Kx*x+Kz*z))'''
         k = '{}*Ymed(j) + {}*Zmed(k)'.format(self.Kx, self.Kz)
-        # Stagger in y
+        # Stagger in y/z if required
         if stagger == 'y':
             k = '{}*Ymin(j) + {}*Zmed(k)'.format(self.Kx, self.Kz)
         if stagger == 'z':
@@ -50,6 +70,7 @@ class Perturbation():
         return ret
 
     def to_string(self):
+        '''Return list of strings to be used in condinit.c file'''
         ret = []
 
         for i in range(0, self.n_dust+1):
@@ -61,6 +82,15 @@ class Perturbation():
         return ret
 
 class GasEpicycle(Perturbation):
+    '''Gas-only epicycle.
+
+    Args:
+        Kx: wave number x
+        Kz: wave number z
+        sound_speed: sound speed
+        amplitude: epicycle amplitude
+    '''
+
     def __init__(self, Kx, Kz, sound_speed, amplitude):
         self.c = sound_speed
         Perturbation.__init__(self, 0, amplitude, Kx, Kz)
@@ -86,7 +116,13 @@ class GasEpicycle(Perturbation):
         self.eig = v
 
 class LinearA(Perturbation):
+    '''Class for LinearA SI test problem.
+
+    Args:
+        amplitude: perturbation amplitude
+    '''
     def __init__(self, amplitude):
+        # LinearA: 1 dust fluid, wave number = 30
         Perturbation.__init__(self, 1, amplitude, 30, 30)
 
     def set_eigenvector(self):
@@ -106,7 +142,13 @@ class LinearA(Perturbation):
         self.eig = [drhog, dvgx, dvgy, dvgz, drhod, dvdx, dvdy, dvdz]
 
 class LinearB(Perturbation):
+    '''Class for LinearB SI test problem.
+
+    Args:
+        amplitude: perturbation amplitude
+    '''
     def __init__(self, amplitude):
+        # LinearB: 1 dust fluid, wave number = 6
         Perturbation.__init__(self, 1, amplitude, 6, 6)
 
     def set_eigenvector(self):
@@ -127,7 +169,13 @@ class LinearB(Perturbation):
         self.eig = [drhog, dvgx, dvgy, dvgz, drhod, dvdx, dvdy, dvdz]
 
 class Linear3(Perturbation):
+    '''Class for Linear3 MSI test problem.
+
+    Args:
+        amplitude: perturbation amplitude
+    '''
     def __init__(self, amplitude):
+        # LinearB: 2 dust fluids, wave number = 50
         Perturbation.__init__(self, 2, amplitude, 50, 50)
 
     def set_eigenvector(self):
@@ -145,6 +193,14 @@ class Linear3(Perturbation):
                     +0.1485545469 + 0.0200753935j]
 
 class RandomFixedK(Perturbation):
+    '''Class for random eigenvector at specific wave number.
+
+    Args:
+        n_dust: number of dust collocation points
+        amplitude: amplitude of perturbation
+        Kx: wave number x
+        Kz: wave number z
+    '''
     def set_eigenvector(self):
         rng = np.random.default_rng(12345)
 
@@ -161,6 +217,14 @@ class RandomFixedK(Perturbation):
         self.eig[4] = 1.0
 
 class PSI_pert(Perturbation):
+    '''Class for exact PSI perturbation
+
+    Args:
+        poly_dust: PolyDust object
+        amplitude: perturbation amplitude
+        Kx: wave number x
+        Kz: wave number z
+    '''
     def __init__(self, poly_dust, amplitude, Kx, Kz):
         self.pd = poly_dust
 

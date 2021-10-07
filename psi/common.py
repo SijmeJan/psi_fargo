@@ -1,4 +1,5 @@
 def read_file(file_name):
+    '''Return all lines in text file'''
     f = open(file_name, "r")
     lines = f.readlines()
     f.close()
@@ -6,6 +7,7 @@ def read_file(file_name):
     return lines
 
 def write_file(file_name, lines):
+    '''Write a list of strings to text file'''
     f = open(file_name, "w")
     f.writelines(lines)
     f.close()

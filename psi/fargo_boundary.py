@@ -1,6 +1,7 @@
 from common import *
 
 def write_boundary_files(setup_name, n_dust):
+    '''Write boundary (.bound) files for all fluids.'''
     fnames = []
 
     for i in range(0, n_dust+1):

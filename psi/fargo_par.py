@@ -1,6 +1,15 @@
 from common import *
 
 def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44):
+    '''Write FARGO .par file.
+
+    Args:
+        setup_name: Name of the setup being created
+        pd: PolyDust object
+        shearing_box: ShearingBox object
+        output: Output object
+        cfl (optional): Courant number to use. Defaults to 0.44.
+    '''
     n_dust = pd.N
     stokes = pd.dust_nodes()
 
@@ -22,8 +31,6 @@ def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44):
     for i in range(1, n_dust+1):
         add_line(lines, 'Invstokes' + str(i) + '        ' + str(1/stokes[i-1]) + '   Inverse of the Stokes number for dust' + str(i) + '\n')
 
-    #add_line(lines, '\nEpsilon                 ' + str(dust_to_gas_ratio) + '    Dust-to-gas mass ratio\n')
-
     add_line(lines, '\n### Mesh parameters\n\n')
 
     add_line(lines, 'Ny         {}      Number of \'radial\' zones\n'.format(grid[1]))
@@ -44,7 +51,6 @@ def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44):
     add_line(lines, 'Ninterm    {}     Time steps between outputs\n'.format(output.Ninterm))
     add_line(lines, 'Ntot       {}    Total number of time steps\n'.format(output.Ntot))
 
-    #add_line(lines, 'OutputDir      @outputs/' + setup_name + '\n')
     add_line(lines, 'OutputDir      {}\n'.format(output.output_dir))
 
     fname = setup_name + '.par'
