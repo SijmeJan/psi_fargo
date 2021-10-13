@@ -3,7 +3,8 @@ from scipy import linalg
 
 from psitools.psi_mode import PSIMode
 
-def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
+def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z,
+              viscous_alpha=0.0):
     '''Calculate PSI eigenfunctions
 
     Args:
@@ -11,6 +12,7 @@ def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
         stokes_range: minimum and maximum Stokes number
         wave_number_x: Kx
         wave_number_z: Kz
+        viscous_alpha (optional): viscosity parameter, defaults to zero.
     '''
     # Use PSIMode to calculate eigenvalue
     np.random.seed(0)
@@ -20,12 +22,16 @@ def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z):
                  imag_range=[1.0e-8, 1])
 
     roots = pm.calculate(wave_number_x=wave_number_x,
-                         wave_number_z=wave_number_z)
+                         wave_number_z=wave_number_z,
+                         viscous_alpha=viscous_alpha,
+                         constant_schmidt=True)
 
     # Get corresponding eigenfunctions
     rhog, vg, sigma, u = \
       pm.eigenvector(roots[0], wave_number_x=wave_number_x,
-                     wave_number_z=wave_number_z)
+                     wave_number_z=wave_number_z,
+                     viscous_alpha=viscous_alpha,
+                     constant_schmidt=True)
 
     # Set local so we can access eigenvalue if needed
     PSI_eigen.eigenvalue = roots[0]
@@ -225,8 +231,9 @@ class PSI_pert(Perturbation):
         Kx: wave number x
         Kz: wave number z
     '''
-    def __init__(self, poly_dust, amplitude, Kx, Kz):
+    def __init__(self, poly_dust, amplitude, Kx, Kz, viscous_alpha=0.0):
         self.pd = poly_dust
+        self.viscous_alpha = viscous_alpha
 
         Perturbation.__init__(self, self.pd.N, amplitude, Kx, Kz)
 
@@ -236,7 +243,8 @@ class PSI_pert(Perturbation):
 
         # PSI eigenvector
         rhog, vg, sigma, u = \
-          PSI_eigen(mu, self.pd.stokes_range, self.Kx, self.Kz)
+          PSI_eigen(mu, self.pd.stokes_range, self.Kx, self.Kz,
+                    viscous_alpha=self.viscous_alpha)
 
         tau = self.pd.dust_nodes()
 

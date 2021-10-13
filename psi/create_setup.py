@@ -9,7 +9,9 @@ from polydust import Polydust, SizeDistribution
 #stokes_range = [0.1]
 stokes_range = [1.0e-2, 0.1]
 
-pd = Polydust(n_dust = 4,
+viscous_alpha=1.0e-6
+
+pd = Polydust(n_dust = 8,
               stokes_range = stokes_range,
               dust_density = 3.0,
               gas_density = 1.0,
@@ -19,29 +21,30 @@ pd = Polydust(n_dust = 4,
               discrete_equilibrium=False)
 
 # Add single mode perturbation
-Kx = 30
-Kz = 30
+Kx = 10
+Kz = 1
 #mode = None
 #mode = single_mode.GasEpicycle(30, 30, 20, 0.01)
 #mode = single_mode.Linear3(1.0e-5)
 #mode = single_mode.RandomFixedK(pd.N, 1.0e-5, Kx, Kz)
-mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz)
+mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz, viscous_alpha=viscous_alpha)
 
 #print('Discrete growth rate:', pd.growth_rate(Kx, Kz))
 
 Ly = 2*np.pi/Kx                  # 'radial' box size
 Lz = 2*np.pi/Kz                  # vertical box size
-Ny = 32                          # 'radial' number of grid points
-Nz = 32                          # vertical number of grid points
+Ny = 16                          # 'radial' number of grid points
+Nz = 16                          # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
-output = Output('/Users/sjp/Codes/psi_fargo/data/mu1_K100/test',
-                dt=0.01, Ninterm=10, Ntot=5000)
+output = Output('/Users/sjp/Codes/psi_fargo/data/mu3_K10/test',
+                dt=0.1, Ninterm=10, Ntot=10000)
 
 try:
     setup = FargoSetup('psi')
 except:
     raise
 
-setup.create(pd, mode, shearing_box, output, cfl=0.44)
+setup.create(pd, mode, shearing_box, output,
+             cfl=0.44, viscous_alpha=viscous_alpha)

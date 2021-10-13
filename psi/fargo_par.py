@@ -1,6 +1,7 @@
 from common import *
 
-def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44):
+def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44,
+                   viscous_alpha=0.0):
     '''Write FARGO .par file.
 
     Args:
@@ -16,13 +17,16 @@ def write_par_file(setup_name, pd, shearing_box, output, cfl=0.44):
     box_size = shearing_box.dims
     grid = shearing_box.mesh_size
 
+    # Viscosity using cs=20
+    nu = viscous_alpha*20.0*20.0
+
     lines = ['# PSI FARGO2D setup using ' + str(n_dust) + ' dust fluids\n\n']
 
     add_line(lines, 'Setup          ' + setup_name + '\n')
 
     add_line(lines, '\n### Disk parameters\n\n')
     add_line(lines, 'AspectRatio        1.0            Make eta source term 2\n')
-    add_line(lines, 'Nu                 0.0            Uniform kinematic viscosity\n')
+    add_line(lines, 'Nu                 {}            Uniform kinematic viscosity\n'.format(nu))
     add_line(lines, 'OmegaFrame         1.0      Rotation rate\n')
     add_line(lines, 'ShearParam         1.5      Shear rate\n')
 

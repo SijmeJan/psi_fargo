@@ -50,7 +50,8 @@ class FargoSetup:
 
         self.fargo_dir = fargo_dir
 
-    def create(self, polydust, mode, shearing_box, output, cfl=0.44):
+    def create(self, polydust, mode, shearing_box, output, cfl=0.44,
+               viscous_alpha=0.0):
         '''Create FARGO setup
 
         Args:
@@ -69,7 +70,8 @@ class FargoSetup:
                                  polydust,
                                  shearing_box,
                                  output,
-                                 cfl=cfl)
+                                 cfl=cfl,
+                                 viscous_alpha=viscous_alpha)
 
         perturbation = None
         if mode is not None:
