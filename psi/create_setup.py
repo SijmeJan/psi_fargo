@@ -4,6 +4,8 @@ from fargo_setup import ShearingBox, Output, FargoSetup
 import single_mode
 from polydust import Polydust, SizeDistribution
 
+output_direc = '/Users/sjp/Codes/psi_fargo/data/mu3_K10/test'
+
 # For continuum: min and max Stokes numbers
 # For discrete multifluid: list all Stokes numbers
 #stokes_range = [0.1]
@@ -27,7 +29,8 @@ Kz = 1
 #mode = single_mode.GasEpicycle(30, 30, 20, 0.01)
 #mode = single_mode.Linear3(1.0e-5)
 #mode = single_mode.RandomFixedK(pd.N, 1.0e-5, Kx, Kz)
-mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz, viscous_alpha=viscous_alpha)
+mode = single_mode.PSI_pert(pd, 1.0e-5, Kx, Kz,
+                            viscous_alpha=viscous_alpha)
 
 #print('Discrete growth rate:', pd.growth_rate(Kx, Kz))
 
@@ -38,8 +41,7 @@ Nz = 16                          # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
-output = Output('/Users/sjp/Codes/psi_fargo/data/mu3_K10/test',
-                dt=0.1, Ninterm=10, Ntot=10000)
+output = Output(output_direc, dt=0.1, Ninterm=10, Ntot=10000)
 
 try:
     setup = FargoSetup('psi')
