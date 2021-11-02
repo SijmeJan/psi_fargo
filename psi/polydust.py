@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from scipy.special import roots_legendre
 from scipy.integrate import quad
 
@@ -74,6 +75,15 @@ class Polydust():
                 self.sigma = np.asarray(size_distribution)
                 # Normalize to total dust density unity
                 self.sigma = self.sigma/np.sum(self.sigma)
+
+    @classmethod
+    def from_output_direc(cls, direc):
+        n_dust = len([name for name in os.listdir(direc) if name.endswith('dens0_0.dat')]) - 1
+
+        print('Number of dust species:', n_dust)
+
+        # NOTE: Stokes range and gas and dust densities not read!
+        return cls(n_dust, [0.01, 0.1], 3.0, 1.0)
 
     def nodes_and_weights(self):
         '''Return Gauss-Legendre nodes and weights'''
