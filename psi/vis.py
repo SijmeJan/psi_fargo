@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib import colors
+
 import numpy as np
 #from scipy.optimize import fsolve
 #from scipy import linalg
@@ -207,6 +209,61 @@ def contour_dust_stop(direc, number):
 
     plt.show()
 
+def contour_dust_stop_multi(direcs, number):
+    shift = 0.0
+
+    dens = []
+    tau = []
+    maxdens = []
+    mindens = []
+    maxtau = []
+    mintau = []
+
+    for direc in direcs:
+        n = number
+        if n < 0:
+            n = vt.max_save(direc) - 1
+
+        pf = vt.PolyFluid(direc)
+        pf.read(n)
+        d = pf.dust_density()[:,0,:]
+        t = pf.average_stopping_time()[:,0,:]
+        dens.append(d)
+        tau.append(t)
+
+        maxdens.append(np.max(d))
+        mindens.append(np.min(d))
+        maxtau.append(np.max(t))
+        mintau.append(np.min(t))
+
+    maxdens = np.max(np.asarray(maxdens))
+    mindens = np.min(np.asarray(mindens))
+    maxtau = np.max(np.asarray(maxtau))
+    mintau = np.min(np.asarray(mintau))
+
+    levels_p = np.linspace(mindens, maxdens, 100)
+    levels_q = np.linspace(mintau, maxtau, 100)
+
+    fig, axs = plt.subplots(1,2)
+
+    for i, direc in enumerate(direcs):
+        coord = vt.Coordinates(direc)
+
+        x = coord.x + shift
+        y = coord.z
+
+        p = axs[0].contourf(x, y, dens[i], levels=levels_p)
+        q = axs[1].contourf(x, y, tau[i], levels=levels_q)
+
+        shift = shift + np.max(x) - np.min(x) + x[1] - x[0]
+
+    plt.colorbar(p, ax=axs[0])
+    plt.colorbar(q, ax=axs[1])
+
+    plt.suptitle(r'$\Omega t =$ {}'.format(vt.time_stamps(direc, n)[-1]))
+
+    plt.show()
+
 def scatter_dust_stop(direc, number):
     coord = vt.Coordinates(direc)
 
@@ -247,7 +304,7 @@ def stopping_time_distribution_max(direc, number, stokes_range,
             #s0 = 3/np.sqrt(tau)/2/(np.sqrt(stokes_range[1]) - np.sqrt(stokes_range[0]))
 
             plt.plot(tau, s)
-            plt.plot(tau_points, y, ls='None', marker='o')
+            #plt.plot(tau_points, y, ls='None', marker='o')
 
 
     plt.xscale('log')
@@ -316,6 +373,61 @@ def stopping_time_distribution(direc, number, stokes_range):
     #plt.yscale('log')
     #plt.show()
 
+def stopping_time_distribution_slice(direc, number, stokes_range,
+                                     interpolate=True,
+                                     logsigma=True):
+    st0 = stokes_range[0]
+    st1 = stokes_range[1]
+
+    coord = vt.Coordinates(direc)
+
+    pf = vt.PolyFluid(direc)
+
+    if number < 0:
+        number = vt.max_save(direc) - 1
+    pf.read(number)
+
+    x, y, xi, s = pf.size_distribution(0, 0, 0)
+    nx = len(pf.Fluids[0].dens[0,0,:])
+
+    if interpolate is True:
+        tau = st0*np.power(st1/st0, 0.5*(xi+1))
+        res = np.empty((nx, len(s)))
+        res[0,:] = s
+    else:
+        tau = st0*np.power(st1/st0, 0.5*(x+1))
+        res = np.empty((nx, len(y)))
+        res[0,:] = y
+
+    for i in range(1, nx):
+        x, y, xi, s = pf.size_distribution(0, 0, i)
+        if interpolate is True:
+            res[i,:] = s
+        else:
+            res[i,:] = y
+
+    print(np.min(res), np.max(res))
+    print(np.min(np.log10(res)), np.max(np.log10(res)))
+
+    if logsigma is True:
+        levels, cbarticks, cbarlabels = vt.log_levels(-3,3)
+        p = plt.contourf(tau, coord.z, res,
+                         levels=levels, norm=colors.LogNorm())
+        cbar = plt.colorbar(p, ax=plt.gca())
+        cbar.set_ticks(cbarticks)
+        cbar.set_ticklabels(cbarlabels)
+    else:
+        p = plt.contourf(tau, coord.z, res, levels=100)
+        plt.colorbar()
+
+    plt.xlabel(r'$\tau_{\rm s}$')
+    plt.ylabel(r'$z$')
+
+    plt.tight_layout()
+    plt.xscale('log')
+
+    plt.show()
+
 def Reynolds_plot(direcs, cs=20.0):
     for direc in direcs:
         t = vt.time_stamps(direc, vt.max_save(direc))
@@ -343,27 +455,58 @@ def Reynolds_plot(direcs, cs=20.0):
 
     plt.show()
 
+def rho_pdf(direcs, start_aver, nbins=100):
+    max_dens = 20.0
+    min_dens = 0.1
+
+    bins = np.linspace(np.log(min_dens), np.log(max_dens), nbins)
+
+    for direc in direcs:
+        numbers = np.arange(vt.max_save(direc) - start_aver) + start_aver
+
+        pf = vt.PolyFluid(direc)
+
+        hist = 0.0*bins[:-1]
+        tot_frame = 0
+
+        for n in numbers:
+            print(n)
+            tot_frame = tot_frame +1
+
+            pf.read(n)
+            total_dens = np.log(np.ravel(pf.dust_density()))
+
+            res, bin_edges = np.histogram(total_dens, bins=bins)
+
+            hist = hist + res/len(total_dens)
+
+        plt.plot(np.exp(bins[:-1]), hist/tot_frame)
+
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.show()
+
+basedir = '/Volumes/SJP_Data/Data/psi_fargo/'
 direcs = [
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K100/N8_ND64/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N32_ND16/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N8_ND32/',
-          '/Users/sjp/Codes/psi_fargo/data/mu3_K30_long/N128_ND16/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K10/test/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30_long/N32_ND4/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30_long/N64_ND4/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N64_ND4_gauss/',
-          #'/Users/sjp/Codes/psi_fargo/data/mu3_K30/N128_ND8_gauss/',
-          #'/Users/sjp/Codes/psi_fargo/data/lin3/N8/',
-          #'/Users/sjp/Codes/psi_fargo/data/lin3/N16/',
-          #'/Users/sjp/Codes/psi_fargo/data/lin3/N32/',
-          #'/Users/sjp/Codes/psi_fargo/data/lin3/N64/',
-          #'/Users/sjp/Codes/psi_fargo/public/outputs/psi_linearA/'
+          basedir+'mu3_K10_a-6/N16_ND8/',
+          basedir+'mu3_K10_a-6/N32_ND8/',
+          basedir+'mu3_K10_a-6/N64_ND8/',
+          basedir+'mu3_K10_a-6/N128_ND8/',
+          basedir+'mu3_K10_a-6/N256_ND8/',
+          basedir+'mu3_K10_a-6/N512_ND8/',
+          #basedir+'mu3_K30_wide/N512_ND16/',
+          #basedir+'mu3_K30_long/N128_ND64/',
           ]
 
+rho_pdf(direcs, 400)
+#exit()
 
 #Reynolds_plot(direcs)
 #stopping_time_distribution(direcs[0], [-1], [0.01, 0.1])
-#stopping_time_distribution_max(direcs[0], [-1], [0.01, 0.1], max_dens=12.0)
+#stopping_time_distribution_max(direcs[0], [-1], [0.01, 0.1], max_dens=15.0)
+#stopping_time_distribution_slice(direcs[0], -1, [0.01, 0.1],
+#                                 interpolate=True,
+#                                 logsigma=False)
 
 #FourierPlot(direcs, 10, 1)
 #EigenVectorPlot(direcs, 100, 200,
@@ -376,7 +519,7 @@ direcs = [
 
 
 #exit()
-contour_dust_stop(direcs[0], -1)
+#contour_dust_stop_multi(direcs, 350)
 #contour_dust_stop(direcs[1], 900)
 
 #plt.xscale('log')
