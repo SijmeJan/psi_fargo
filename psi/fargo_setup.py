@@ -35,6 +35,18 @@ class ShearingBox:
         self.dims = dims
         self.mesh_size = mesh_size
 
+    @classmethod
+    def from_output_direc(cls, direc):
+        y = np.loadtxt(direc+'/domain_y.dat')
+        ny = len(y) - 7
+        z = np.loadtxt(direc+'/domain_z.dat')
+        nz = len(z) - 7
+
+        Ly = -2*y[3]
+        Lz = -2*z[3]
+
+        return cls([0, Ly, Lz],[1, ny, nz])
+
 class FargoSetup:
     '''Class for creating a new PSI FARGO setup
 
