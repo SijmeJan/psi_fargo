@@ -1,7 +1,12 @@
 import numpy as np
 from scipy import linalg
 
-from psitools.psi_mode import PSIMode
+try:
+    from psitools.psi_mode import PSIMode
+except ImportError as error:
+    # as of python 3.6 now throws ModuleNotFoundError
+    print('Will run despite error importing psitools:', error)
+
 
 def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z,
               viscous_alpha=0.0):
