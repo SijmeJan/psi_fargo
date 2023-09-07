@@ -87,8 +87,8 @@ mode = single_mode.LinearA(1.0e-5)
 
 Ly = 2*np.pi/Kx                  # 'radial' box size
 Lz = 2*np.pi/Kz                  # vertical box size
-Ny = 16                          # 'radial' number of grid points
-Nz = 16                          # vertical number of grid points
+Ny = 32                          # 'radial' number of grid points
+Nz = 32                          # vertical number of grid points
 
 shearing_box = ShearingBox(dims=[0, Ly, Lz], mesh_size=[1, Ny, Nz])
 
