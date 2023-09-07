@@ -6,6 +6,7 @@ try:
 except ImportError as error:
     # as of python 3.6 now throws ModuleNotFoundError
     print('Will run despite error importing psitools:', error)
+    print('If PSIMode is needed, install psitools')
 
 
 def PSI_eigen(dust_to_gas_ratio, stokes_range, wave_number_x, wave_number_z,
