@@ -197,9 +197,20 @@ def contour_dust_stop(direc, number):
 
     fig, axs = plt.subplots(1,2)
 
-    p = axs[0].contourf(coord.x,coord.z,
-                        pf.dust_density()[:,0,:], levels=100)
-    plt.colorbar(p, ax=axs[0])
+    level_p, cbarticks, cbarlabels = vt.log_levels(-2,2)
+
+    z = pf.dust_density()[:,0,:]
+    # Make sure we stay within level bounds
+    sel = np.asarray(z < level_p[0]).nonzero()
+    z[sel] = level_p[0] + 1.0e-20
+    sel = np.asarray(z > level_p[-1]).nonzero()
+    z[sel] = level_p[-1] - 1.0e-20
+
+    p = axs[0].contourf(coord.x, coord.z, z,
+                        norm=colors.LogNorm(),levels=level_p)
+    cbar = plt.colorbar(p, ax=axs[0])
+    cbar.set_ticks(cbarticks)
+    cbar.set_ticklabels(cbarlabels)
 
     q = axs[1].contourf(coord.x,coord.z,
                         pf.average_stopping_time()[:,0,:], levels=100)
@@ -207,6 +218,12 @@ def contour_dust_stop(direc, number):
 
     plt.suptitle(r'$\Omega t =$ {}'.format(vt.time_stamps(direc, number)[-1]))
 
+    axs[0].set_title('Dust to gas ratio')
+    axs[1].set_title('Average Stokes Number')
+    axs[0].set_xlabel('x')
+    axs[0].set_ylabel('z')
+    axs[1].set_xlabel('x')
+    axs[1].set_ylabel('z')
     plt.show()
 
 def contour_dust_stop_multi(direcs, number):
@@ -488,17 +505,18 @@ def rho_pdf(direcs, start_aver, nbins=100):
 
 basedir = '/Volumes/SJP_Data/Data/psi_fargo/'
 direcs = [
-          basedir+'mu3_K10_a-6/N16_ND8/',
-          basedir+'mu3_K10_a-6/N32_ND8/',
-          basedir+'mu3_K10_a-6/N64_ND8/',
-          basedir+'mu3_K10_a-6/N128_ND8/',
-          basedir+'mu3_K10_a-6/N256_ND8/',
-          basedir+'mu3_K10_a-6/N512_ND8/',
-          #basedir+'mu3_K30_wide/N512_ND16/',
+          #basedir+'mu3_K10_a-6/N16_ND8/',
+          #basedir+'mu3_K10_a-6/N32_ND8/',
+          #basedir+'mu3_K10_a-6/N64_ND8/',
+          #basedir+'mu3_K10_a-6/N128_ND8/',
+          #basedir+'mu3_K10_a-6/N256_ND8/',
+          #basedir+'mu3_K10_a-6/N512_ND8/',
+          #basedir+'mu3_K10_a-6/N1024_ND8/',
+          basedir+'mu3_K30_long/N512_ND8/',
           #basedir+'mu3_K30_long/N128_ND64/',
           ]
 
-rho_pdf(direcs, 400)
+#rho_pdf(direcs, 400)
 #exit()
 
 #Reynolds_plot(direcs)
@@ -520,7 +538,7 @@ rho_pdf(direcs, 400)
 
 #exit()
 #contour_dust_stop_multi(direcs, 350)
-#contour_dust_stop(direcs[1], 900)
+contour_dust_stop(direcs[0], -1)
 
 #plt.xscale('log')
 #plt.show()
