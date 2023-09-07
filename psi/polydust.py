@@ -13,7 +13,10 @@ class SizeDistribution():
     '''
     def __init__(self, stokes_range):
         self.taumin = stokes_range[0]
-        self.taumax = stokes_range[1]
+        if len(stokes_range) > 1:
+            self.taumax = stokes_range[1]
+        else:
+            self.taumax = self.taumin
 
     def sigma(self, x):
         '''MRN size distribution, normalized to unity'''
@@ -100,7 +103,10 @@ class Polydust():
                 xi = np.asarray(xi)
                 weights = np.asarray(weights)
 
-                q = self.stokes_range[1]/self.stokes_range[0]
+                if len(self.stokes_range) > 1:
+                    q = self.stokes_range[1]/self.stokes_range[0]
+                else:
+                    q = 1.0
 
                 # Stopping time nodes
                 tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
@@ -132,7 +138,10 @@ class Polydust():
                 xi = np.asarray(xi)
                 weights = np.asarray(weights)
 
-                q = self.stokes_range[1]/self.stokes_range[0]
+                if len(self.stokes_range) > 1:
+                    q = self.stokes_range[1]/self.stokes_range[0]
+                else:
+                    q = 1.0
 
                 # Stopping time nodes
                 tau = self.stokes_range[0]*np.power(q, 0.5*(xi + 1))
